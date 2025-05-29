@@ -1,0 +1,13 @@
+# 에디터 간 들여쓰기, 줄바꿈 스타일 일관성 유지
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+
+[*.md]
+trim_trailing_whitespace = false
