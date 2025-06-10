@@ -1,4 +1,6 @@
-node_modules
+# Prettier는 기본적으로 node_modules/ 무시함 (명시할 필요 없음)
+# node_modules/
+
 dist
 build
 coverage

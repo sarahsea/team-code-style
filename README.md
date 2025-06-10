@@ -32,8 +32,17 @@
 
 IDE 별로 코드 스타일 관련 세팅 확인 필요
 
-- vscode > 워크스페이스 (.vscode/settings.json) > "editor.formatOnSave" 등 예시 확인
-- Jetbrains계열 > Preferences > languages & Framworks > javascript > Code Quality Tools > ESLint 설정 파일 경로 지정 | Prettier on save, configuration file 등
+- editorconfig 적용
+  - vscode > extensions "editorConfig for VS Code"
+  - JetBrains 기본 내장 지원
+    - 다만, 설정 확인: Editor > Code Style > Enable EditorConfig support 체크 여부 확인 (기본 켜져 있음)
+
+- ESLint / Prettier 적용
+  - vscode > 워크스페이스 (.vscode/settings.json) > "editor.formatOnSave" 등 예시 확인
+  - Jetbrains계열 > Preferences > languages & Framworks > javascript > Code Quality Tools 
+    > ESLint 설정 파일 경로 지정 | Prettier on save, configuration file 등
+
+
 
 ## 참고 노션
 

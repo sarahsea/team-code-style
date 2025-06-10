@@ -10,6 +10,9 @@ module.exports = {
     ecmaVersion: 'latest',
     sourceType: 'module',
     ecmaFeatures: { jsx: true },
+    // 실제 tsconfig 존재 시만 필요
+    // project: ['./tsconfig.json'],
+    // tsconfigRootDir: __dirname,
   },
   plugins: [
     '@typescript-eslint',
@@ -19,13 +22,21 @@ module.exports = {
     'unused-imports',
   ],
   extends: [
-    'eslint:recommended',
-    'plugin:@typescript-eslint/recommended',
-    'plugin:react/recommended',
-    'plugin:react-hooks/recommended',
-    'plugin:jsx-a11y/recommended',
-    'plugin:prettier/recommended',
-    'prettier', // prettier 충돌 방지
+    'eslint:recommended', // JS 기본 린트 규칙
+    'plugin:@typescript-eslint/recommended', // TS용 린트 규칙
+    'plugin:react/recommended', // React 기본 린트 규칙
+    'plugin:react-hooks/recommended', // React hook 관련 린트 규칙
+    'plugin:jsx-a11y/recommended', // 웹 접근성(a11y) 관련 린트
+    'plugin:prettier/recommended', // Prettier와 충돌 방지 + 포맷팅 규칙
+    'prettier', // prettier 충돌 방지 // 위 plugin:prettier/recommended 에 포함되어 있지만, 일부설정 보완효과, 위 하나만 써도 됨
+
+    // 더 엄격한 스타일 가이드 - import순서, 변수네이밍, 함수 정의 방식 등 - 를 원한다면
+    // 다른 플러그인 추가 - 단점, peer dependencies 많을 수 있고, 린트 에러 빈번할 수 있음
+    // ex) airbnb 적용 예 (아래)
+
+    // 'airbnb', // Airbnb JS 스타일 가이드
+    // 'airbnb/hooks', // React Hook 규칙 포함
+    // 'airbnb-typescript', // TypeScript 변형 가이드 (별도 설치 필요)
   ],
   settings: {
     react: {
