@@ -1,0 +1,29 @@
+node_modules
+dist
+build
+coverage
+.vscode
+*.config.js
+*.d.ts
+*.snap
+
+# 기본적으로 ESLint가 무시하는 경로
+# 다음 경로들은 별도 설정 없이도 기본적으로 무시됩니다:
+# node_modules/
+# .git/
+# bower_components/
+# coverage/
+# dist/, build/ (일부는 default 아님)
+
+# .eslintignore는 추가로 린트에서 제외하고 싶은 경로가 있을 때 사용합니다.
+
+# # 빌드 아웃풋 무시
+# dist/
+# build/
+
+# # 테스트 결과물 무시
+# coverage/
+
+# # 특정 디렉토리 또는 파일 무시
+# scripts/generate.js
+# storybook-static/
