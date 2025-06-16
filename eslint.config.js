@@ -1,21 +1,14 @@
 // @ts-check
+import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
-import eslintPluginVue from 'eslint-plugin-vue';
 import eslintPluginReact from 'eslint-plugin-react';
 import eslintPluginReactHooks from 'eslint-plugin-react-hooks';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
+import eslintPluginConfigPrettier from 'eslint-config-prettier/flat';
+
+import eslintPluginBoundaries from 'eslint-plugin-boundaries';
 import js from '@eslint/js';
 import globals from 'globals';
-
-// JSON 파일 린팅을 위한 플러그인 및 파서
-import jsoncParser from 'jsonc-eslint-parser';
-import eslintPluginJsonc from 'eslint-plugin-jsonc';
-
-// Markdown 파일 린팅을 위한 플러그인
-import eslintPluginMarkdown from 'eslint-plugin-markdown';
-
-// Node.js 관련 규칙을 위한 플러그인 (선택 사항: 필요한 경우 설치 후 활성화)
-// import eslintPluginN from 'eslint-plugin-n';
 
 export default tseslint.config(
   // =====================================================================
@@ -28,10 +21,18 @@ export default tseslint.config(
       'build/', // 빌드 출력 폴더
       'node_modules/', // npm 패키지 폴더
       'coverage/', // 테스트 커버리지 보고서
-      '*.config.js', // ESLint 설정 파일 자체
+      '*.config.js',
       '*.config.mjs',
       '*.config.cjs',
+      '*.config.ts',
       // 여기에 추가적으로 린팅을 무시할 파일/폴더를 추가하세요.
+      '**/*.test.{js,ts,mjs,cts,mts,jsx,tsx}',
+      '!.storybook', // Storybook 설정 폴더
+      '.storybook',
+      'deploy/', // 배포 관련 폴더
+      'src/**/*.stories.ts',
+      'src/**/*.stories.tsx',
+
       // 예: '.next/', '.svelte-kit/', '.output/', 'public/', 'assets/'
     ],
   },
@@ -40,6 +41,8 @@ export default tseslint.config(
   //    .js, .jsx, .mjs, .ts, .tsx, .vue 파일에 기본적으로 적용됩니다.
   //    (CommonJS 파일은 별도의 섹션에서 처리됩니다.)
   // =====================================================================
+  // ESLint 자체의 권장 규칙 세트
+  js.configs.recommended,
   {
     files: ['**/*.{js,jsx,mjs,ts,tsx,vue}'],
     languageOptions: {
@@ -52,8 +55,6 @@ export default tseslint.config(
         // 예: 'jQuery': 'readonly'
       },
     },
-    // ESLint 자체의 권장 규칙 세트
-    ...js.configs.recommended,
     rules: {
       // 기본적인 JavaScript 규칙 추가 또는 재정의
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }], // 사용되지 않는 변수 경고 (언더스코어 변수는 무시)
@@ -71,20 +72,25 @@ export default tseslint.config(
   // =====================================================================
   // 3. TypeScript 설정 (.ts, .tsx 파일에만 적용)
   // =====================================================================
+  ...tseslint.configs.recommended,
   {
     files: ['**/*.ts', '**/*.tsx'],
     // tseslint.config에서 제공하는 TypeScript 관련 기본 및 타입 체크 규칙을 확장합니다.
     // 'recommendedTypeChecked'는 타입 정보를 사용하므로, 성능에 영향을 줄 수 있습니다.
     // 프로젝트 규모나 빌드 속도에 따라 'recommended'만 사용하거나 특정 규칙만 활성화할 수 있습니다.
     extends: [
-      ...tseslint.configs.recommended,
-      ...tseslint.configs.recommendedTypeChecked,
+      ...tseslint.configs.recommendedTypeChecked, // 권장 타입 체크 규칙 - 성능 저하 있을 수 있음
       // ...tseslint.configs.strictTypeChecked, // 더 엄격한 타입 체크 규칙이 필요하다면 활성화
     ],
+
     languageOptions: {
       parser: tseslint.parser, // TypeScript 코드를 파싱할 파서 지정
       parserOptions: {
-        project: true, // `tsconfig.json` 파일에서 타입 정보를 로드합니다.
+        project: [
+          './tsconfig.json',
+          './tsconfig.node.json',
+          './tsconfig.app.json',
+        ], // Explicitly list all tsconfig files
         tsconfigRootDir: import.meta.dirname, // `tsconfig.json`을 찾을 기준 디렉토리 (현재 설정 파일 기준)
       },
     },
@@ -101,12 +107,31 @@ export default tseslint.config(
       ], // TypeScript 버전의 no-unused-vars (언더스코어 변수 무시)
       'no-unused-vars': 'off', // ESLint 기본 no-unused-vars 비활성화 (TS 버전으로 대체)
     },
+    ignores: [
+      // TypeScript 관련 파일 중 스토리북 관련 파일은 제외
+      '**/*.stories.ts',
+      '**/*.stories.tsx',
+      '.storybook/**/*.ts',
+      '.storybook/**/*.tsx',
+    ],
   },
   // =====================================================================
   // 4. React 설정 (.jsx, .tsx 파일에만 적용)
   // =====================================================================
+
   {
     files: ['**/*.jsx', '**/*.tsx'],
+    ...eslintPluginReact.configs.flat['jsx-runtime'],
+    languageOptions: {
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true, // JSX 문법 사용
+        },
+      },
+      globals: {
+        ...globals.browser,
+      },
+    },
     plugins: {
       react: eslintPluginReact,
       'react-hooks': eslintPluginReactHooks,
@@ -116,10 +141,6 @@ export default tseslint.config(
         version: 'detect', // 설치된 React 버전 자동 감지
       },
     },
-    extends: [
-      ...eslintPluginReact.configs.recommended, // React 기본 권장 규칙
-      ...eslintPluginReact.configs['jsx-runtime'], // React 17+ JSX 변환 규칙 (자동 import React)
-    ],
     rules: {
       // React 관련 규칙 추가 또는 재정의
       'react/react-in-jsx-scope': 'off', // React 17+에서 더 이상 `import React`가 필요 없으므로 비활성화
@@ -146,56 +167,7 @@ export default tseslint.config(
       ],
     },
   },
-  // =====================================================================
-  // 5. Vue 설정 (.vue 파일에만 적용)
-  // =====================================================================
-  {
-    files: ['**/*.vue'],
-    extends: [
-      ...eslintPluginVue.configs['flat/essential'], // Vue 기본 필수 규칙
-      // ...eslintPluginVue.configs['flat/strongly-recommended'], // 더 엄격한 Vue 규칙이 필요하면 활성화
-      // ...eslintPluginVue.configs['flat/recommended'], // 가장 엄격한 Vue 규칙이 필요하면 활성화
-    ],
-    languageOptions: {
-      parser: eslintPluginVue.parsers['vue-eslint-parser'], // Vue SFC 파서 지정
-      parserOptions: {
-        parser: tseslint.parser, // Vue <script lang="ts"> 블록을 TypeScript로 파싱하도록 지정
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-        project: true, // tsconfig.json 참조 (Vue SFC 내의 TypeScript 코드에 타입 정보 적용)
-        tsconfigRootDir: import.meta.dirname,
-      },
-    },
-    rules: {
-      // Vue 관련 규칙 추가 또는 재정의
-      'vue/multi-word-component-names': 'off', // 컴포넌트 이름 여러 단어 강제 끄기 (필요 시 'error' 또는 'warn'로 변경)
-      'vue/no-v-html': 'off', // `v-html` 사용 경고 끄기 (보안 고려하여 'warn' 또는 'error'로 변경 권장)
-      'vue/html-self-closing': [
-        'error',
-        {
-          // HTML 태그 자동 닫기 스타일
-          html: {
-            void: 'always',
-            normal: 'always',
-            component: 'always',
-          },
-          svg: 'always',
-          math: 'always',
-        },
-      ],
-      'vue/max-attributes-per-line': [
-        'warn',
-        {
-          // 한 줄당 최대 속성 수 제한
-          singleline: { max: 5 },
-          multiline: { max: 1 },
-        },
-      ],
-      'vue/html-indent': ['warn', 2], // HTML 템플릿 들여쓰기 2칸
-      'vue/require-default-prop': 'off', // Vue 3 Composition API에서 필요 없을 수 있음
-      'vue/no-setup-props-destructure': 'off', // Vue 3 `<script setup>`에서 props 구조분해 할당 허용
-    },
-  },
+
   // =====================================================================
   // 6. CommonJS 파일 설정 (.cjs 파일에만 적용)
   // =====================================================================
@@ -218,70 +190,84 @@ export default tseslint.config(
       // 예: 'n/no-missing-require': ['error', { allowExternal: true }], // eslint-plugin-n 필요
     },
   },
+
   // =====================================================================
-  // 7. JSON 파일 린팅 설정 (.json, .json5, .jsonc 파일에 적용)
+  // * FSD rules helper (Feature-Sliced Design 규칙)
   // =====================================================================
+
   {
-    files: ['**/*.json', '**/*.json5', '**/*.jsonc'],
-    languageOptions: {
-      parser: jsoncParser, // JSON 전용 파서 사용
-    },
+    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
     plugins: {
-      jsonc: eslintPluginJsonc, // JSON 플러그인 활성화
+      boundaries: eslintPluginBoundaries,
     },
-    extends: [
-      ...eslintPluginJsonc.configs['recommended-with-jsonc'], // JSON 권장 규칙
-    ],
     rules: {
-      // JSON 관련 규칙 추가 또는 재정의
-      'jsonc/sort-keys': 'off', // JSON 키 정렬 규칙 (필요 시 활성화)
-      'jsonc/indent': ['error', 2], // JSON 들여쓰기 2칸 강제
-      'jsonc/no-bigint-literals': 'error', // BigInt 리터럴 금지
-      'jsonc/no-binary-expression': 'error', // 이진 표현식 금지
-      'jsonc/no-infinity': 'error', // Infinity 금지
-      'jsonc/no-nan': 'error', // NaN 금지
+      // 1. 수직적 계층 구조를 지킬 것
+      'boundaries/element-types': [
+        'error',
+        {
+          default: 'disallow',
+          message:
+            '올바른 FSD Layer import 규칙을 따르세요: ${dependency.type} 레이어는 ${file.type} 레이어에서 임포트할 수 없습니다.',
+
+          rules: [
+            { from: 'app', allow: ['*'] },
+            {
+              from: 'pages',
+              allow: ['shared', 'entities', 'features', 'widgets'],
+            },
+            {
+              from: 'widgets',
+              allow: ['shared', 'entities', 'features'],
+            },
+            {
+              from: 'features',
+              allow: ['shared', 'entities'],
+            },
+            {
+              from: 'entities',
+              allow: ['shared'],
+            },
+            {
+              from: 'shared',
+              allow: [],
+            },
+          ],
+        },
+      ],
+      // 'boundaries/no-unknown': [1], // 알 수 없는 요소 참조 경고
+    },
+
+    settings: {
+      'boundaries/elements': [
+        { type: 'shared', pattern: 'src/shared/**' },
+        { type: 'entities', pattern: 'src/entities/**' },
+        { type: 'features', pattern: 'src/features/**' },
+        { type: 'widgets', pattern: 'src/widgets/**' },
+        { type: 'pages', pattern: 'src/pages/**' },
+        { type: 'app', pattern: 'src/app/**' },
+      ],
+      'boundaries/includes': ['src/**/*.*'],
+
+      // 핵심 설정 (alias import 인식)
+      'boundaries/include-relative': true,
+      'boundaries/include-absolute': true,
+      'import/resolver': {
+        typescript: {
+          alwaysTryTypes: true,
+        },
+        project: [
+          './tsconfig.json',
+          './tsconfig.node.json',
+          './tsconfig.app.json',
+        ],
+      },
     },
   },
+
   // =====================================================================
-  // 8. Markdown 파일 린팅 설정 (.md 파일 및 그 안의 코드 블록에 적용)
+  // * Prettier 통합 (항상 마지막에 위치해야 Prettier 규칙이 다른 ESLint 규칙을 덮어씁니다.)
   // =====================================================================
-  {
-    files: ['**/*.md'],
-    plugins: {
-      markdown: eslintPluginMarkdown, // Markdown 플러그인 활성화
-    },
-    // Markdown 파일 내의 코드 블록을 ESLint가 인식하도록 설정
-    processor: 'markdown/markdown',
-    rules: {
-      // Markdown 파일 자체에 대한 규칙 (필요 시 추가)
-      // 'prettier/prettier': 'off', // 마크다운 파일 전체에 Prettier 적용을 원치 않을 경우
-    },
-  },
-  // Markdown 파일 내의 코드 블록에 대한 규칙 (JS, TS, JSX, TSX 등)
-  // 예제 코드의 경우 일반적인 코드보다 덜 엄격한 규칙을 적용할 수 있습니다.
-  {
-    files: [
-      '**/*.md/*.js',
-      '**/*.md/*.ts',
-      '**/*.md/*.jsx',
-      '**/*.md/*.tsx',
-      '**/*.md/*.vue',
-      '**/*.md/*.cjs',
-      '**/*.md/*.mjs',
-    ],
-    rules: {
-      'no-console': 'off', // 마크다운 예제 코드에서는 console.log 허용
-      'no-unused-vars': 'off', // 마크다운 예제 코드에서는 사용하지 않는 변수 허용
-      'no-undef': 'off', // 마크다운 예제 코드에서는 정의되지 않은 변수 허용 (빠른 예시용)
-      eqeqeq: 'off', // 마크다운 예제 코드에서는 == 허용
-      'import/no-unresolved': 'off', // import 관련 오류 무시 (외부 모듈 경로가 불분명할 수 있음)
-      'import/no-extraneous-dependencies': 'off',
-      '@typescript-eslint/no-unused-vars': 'off',
-      '@typescript-eslint/no-redeclare': 'off', // 변수 재선언 허용
-    },
-  },
-  // =====================================================================
-  // 9. Prettier 통합 (항상 마지막에 위치해야 Prettier 규칙이 다른 ESLint 규칙을 덮어씁니다.)
-  // =====================================================================
-  eslintPluginPrettierRecommended
+
+  // eslintPluginPrettierRecommended,
+  eslintPluginConfigPrettier
 );
