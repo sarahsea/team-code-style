@@ -60,7 +60,7 @@ module.exports = {
 
     // 안쓰는 변수, import 관련
     'no-unused-vars': 'off', // 겹치는 설정 끄기
-    '@typescript-eslint/no-unused-vars': 'off', // 겹치는 설정 끄기
+    '@typescript-eslint/no-unused-vars': 'off', // 겹치는 설정 끄기 // 이거 대신 tsconfig.json noUnusedParameters / noUnusedLocals: true 고려(타입에서도 감지가능, ESLint없이 타입 기반 분석)
     // eslint-plugin-unused-imports 플러그인에서 설정 사용
     'unused-imports/no-unused-vars': [
       'warn',
