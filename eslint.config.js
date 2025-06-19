@@ -1,18 +1,19 @@
 // @ts-check
-import { defineConfig } from 'eslint/config';
-import tseslint from 'typescript-eslint';
-import eslintPluginReact from 'eslint-plugin-react';
-import eslintPluginReactHooks from 'eslint-plugin-react-hooks';
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
-import eslintPluginConfigPrettier from 'eslint-config-prettier/flat';
-
-import eslintPluginBoundaries from 'eslint-plugin-boundaries';
 import js from '@eslint/js';
 import globals from 'globals';
+import tseslint from 'typescript-eslint';
+
+import eslintPluginReact from 'eslint-plugin-react';
+import eslintPluginReactHooks from 'eslint-plugin-react-hooks';
+import eslintPluginReactRefresh from 'eslint-plugin-react-refresh';
+import eslintPluginJsxA11y from 'eslint-plugin-jsx-a11y';
+import { importX as eslintPluginImportX } from 'eslint-plugin-import-x';
+
+import eslintPluginConfigPrettier from 'eslint-config-prettier/flat';
 
 export default tseslint.config(
   // =====================================================================
-  // 1. 전역 설정 (모든 파일에 적용)
+  // 전역 설정 (모든 파일에 적용)
   // =====================================================================
   {
     // ESLint가 린팅을 건너뛸 파일/폴더를 지정합니다.
@@ -30,19 +31,23 @@ export default tseslint.config(
       '!.storybook', // Storybook 설정 폴더
       '.storybook',
       'deploy/', // 배포 관련 폴더
-      'src/**/*.stories.ts',
-      'src/**/*.stories.tsx',
+      '**/*.stories.ts',
+      '**/*.stories.tsx',
+      '.storybook/**/*.ts',
+      '.storybook/**/*.tsx',
 
       // 예: '.next/', '.svelte-kit/', '.output/', 'public/', 'assets/'
     ],
   },
+  // ESLint 자체의 권장 규칙 세트
+  js.configs.recommended,
+  // TypeScript ESLint의 권장 규칙 세트
+  ...tseslint.configs.recommended,
   // =====================================================================
-  // 2. 공통 JavaScript (ES Module) 설정
+  // 공통 JavaScript (ES Module) 설정
   //    .js, .jsx, .mjs, .ts, .tsx, .vue 파일에 기본적으로 적용됩니다.
   //    (CommonJS 파일은 별도의 섹션에서 처리됩니다.)
   // =====================================================================
-  // ESLint 자체의 권장 규칙 세트
-  js.configs.recommended,
   {
     files: ['**/*.{js,jsx,mjs,ts,tsx,vue}'],
     languageOptions: {
@@ -50,9 +55,6 @@ export default tseslint.config(
       sourceType: 'module', // ES Modules 사용 (`import`/`export`)
       globals: {
         ...globals.browser, // 웹 브라우저 환경 전역 변수 (window, document, console 등)
-        ...globals.node, // Node.js 환경 전역 변수 (process, module, require 등)
-        // 여기에 프로젝트에서 사용하는 추가적인 전역 변수를 정의할 수 있습니다.
-        // 예: 'jQuery': 'readonly'
       },
     },
     rules: {
@@ -61,7 +63,7 @@ export default tseslint.config(
       'no-console': ['warn', { allow: ['warn', 'error'] }], // console.log 경고, console.warn/error 허용
       eqeqeq: 'error', // `===` 사용 강제 (느슨한 비교 `==` 금지)
       curly: 'error', // 모든 제어문에 중괄호 사용 강제
-      'dot-notation': 'warn', // 가능한 경우 점 표기법 사용 권장 (`obj['prop']` 대신 `obj.prop`)
+      // 'dot-notation': 'warn', // 가능한 경우 점 표기법 사용 권장 (`obj['prop']` 대신 `obj.prop`)
       'no-trailing-spaces': 'warn', // 코드 라인 끝의 불필요한 공백 제거
       'comma-dangle': ['warn', 'always-multiline'], // 멀티라인에서 trailing comma 강제
       'no-debugger': 'error', // debugger 사용 금지
@@ -70,19 +72,31 @@ export default tseslint.config(
     },
   },
   // =====================================================================
-  // 3. TypeScript 설정 (.ts, .tsx 파일에만 적용)
+  // CommonJS 파일 설정 (.cjs 파일에만 적용)
   // =====================================================================
-  ...tseslint.configs.recommended,
+  {
+    files: ['**/*.cjs'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'commonjs', // CommonJS 모듈 시스템 명시 (`require`/`module.exports`)
+      globals: {
+        ...globals.node, // Node.js 환경 전역 변수 (주로 Node.js에서 사용되므로)
+      },
+    },
+    rules: {
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      eqeqeq: 'error',
+    },
+  },
+  // =====================================================================
+  // TypeScript 설정 (.ts, .tsx 파일에만 적용)
+  // =====================================================================
   {
     files: ['**/*.ts', '**/*.tsx'],
     // tseslint.config에서 제공하는 TypeScript 관련 기본 및 타입 체크 규칙을 확장합니다.
     // 'recommendedTypeChecked'는 타입 정보를 사용하므로, 성능에 영향을 줄 수 있습니다.
     // 프로젝트 규모나 빌드 속도에 따라 'recommended'만 사용하거나 특정 규칙만 활성화할 수 있습니다.
-    extends: [
-      ...tseslint.configs.recommendedTypeChecked, // 권장 타입 체크 규칙 - 성능 저하 있을 수 있음
-      // ...tseslint.configs.strictTypeChecked, // 더 엄격한 타입 체크 규칙이 필요하다면 활성화
-    ],
-
     languageOptions: {
       parser: tseslint.parser, // TypeScript 코드를 파싱할 파서 지정
       parserOptions: {
@@ -99,7 +113,7 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'warn', // `any` 타입 사용 경고
       '@typescript-eslint/explicit-module-boundary-types': 'off', // 함수 반환 타입 명시 강제 끄기 (필요 시 'error'로 변경)
       '@typescript-eslint/no-non-null-assertion': 'off', // Non-null assertion (`!`) 사용 허용 (프로젝트 스타일에 따라 'warn' 또는 'error'로 변경)
-      '@typescript-eslint/prefer-nullish-coalescing': 'warn', // Nullish coalescing (`??`) 연산자 사용 권장
+      '@typescript-eslint/prefer-nullish-coalescing': 'off', // Nullish coalescing (`??`) 연산자 사용 권장
       '@typescript-eslint/array-type': ['error', { default: 'array-simple' }], // 배열 타입을 `Type[]` 형식으로 강제
       '@typescript-eslint/no-unused-vars': [
         'warn',
@@ -107,21 +121,15 @@ export default tseslint.config(
       ], // TypeScript 버전의 no-unused-vars (언더스코어 변수 무시)
       'no-unused-vars': 'off', // ESLint 기본 no-unused-vars 비활성화 (TS 버전으로 대체)
     },
-    ignores: [
-      // TypeScript 관련 파일 중 스토리북 관련 파일은 제외
-      '**/*.stories.ts',
-      '**/*.stories.tsx',
-      '.storybook/**/*.ts',
-      '.storybook/**/*.tsx',
-    ],
   },
   // =====================================================================
-  // 4. React 설정 (.jsx, .tsx 파일에만 적용)
+  // React 설정 (.jsx, .tsx 파일에만 적용)
   // =====================================================================
-
   {
-    files: ['**/*.jsx', '**/*.tsx'],
+    files: ['**/*.{jsx,tsx}'],
     ...eslintPluginReact.configs.flat['jsx-runtime'],
+    ...eslintPluginReactHooks.configs.recommended,
+    ...eslintPluginReactRefresh.configs.vite,
     languageOptions: {
       parserOptions: {
         ecmaFeatures: {
@@ -135,6 +143,7 @@ export default tseslint.config(
     plugins: {
       react: eslintPluginReact,
       'react-hooks': eslintPluginReactHooks,
+      'react-refresh': eslintPluginReactRefresh,
     },
     settings: {
       react: {
@@ -167,100 +176,92 @@ export default tseslint.config(
       ],
     },
   },
-
   // =====================================================================
-  // 6. CommonJS 파일 설정 (.cjs 파일에만 적용)
+  // JSX 접근성 설정 (.jsx, .tsx 파일에만 적용)
   // =====================================================================
   {
-    files: ['**/*.cjs'],
+    files: ['**/*.{jsx,tsx}'],
+    plugins: {
+      'jsx-a11y': eslintPluginJsxA11y,
+    },
     languageOptions: {
-      ecmaVersion: 'latest',
-      sourceType: 'commonjs', // CommonJS 모듈 시스템 명시 (`require`/`module.exports`)
-      globals: {
-        ...globals.node, // Node.js 환경 전역 변수 (주로 Node.js에서 사용되므로)
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true, // JSX 문법 사용
+        },
       },
     },
-    // ESLint 기본 권장 규칙 적용
-    ...js.configs.recommended,
     rules: {
-      // CommonJS 환경에 특화된 규칙 또는 기본 규칙 재정의
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
-      // `require` 사용 등 CommonJS 관련 함수 사용 시 오류 방지 규칙 추가 가능
-      // 예: 'n/no-missing-require': ['error', { allowExternal: true }], // eslint-plugin-n 필요
+      ...eslintPluginJsxA11y.configs['recommended'].rules,
+      // 추가적인 접근성 규칙 설정
+      'jsx-a11y/anchor-is-valid': 'warn', // 유효하지 않은 앵커 태그 경고
+      'jsx-a11y/no-static-element-interactions': 'warn', // 정적 요소에 이벤트 핸들러 사용 경고
+      'jsx-a11y/click-events-have-key-events': 'warn', // 클릭 이벤트가 키보드 이벤트와 함께 사용되지 않을 때 경고
     },
   },
 
   // =====================================================================
-  // * FSD rules helper (Feature-Sliced Design 규칙)
+  // Import 관련 설정  (.ts, .tsx 파일에만 적용)
   // =====================================================================
-
   {
-    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
-    plugins: {
-      boundaries: eslintPluginBoundaries,
-    },
-    rules: {
-      // 1. 수직적 계층 구조를 지킬 것
-      'boundaries/element-types': [
-        'error',
-        {
-          default: 'disallow',
-          message:
-            '올바른 FSD Layer import 규칙을 따르세요: ${dependency.type} 레이어는 ${file.type} 레이어에서 임포트할 수 없습니다.',
-
-          rules: [
-            { from: 'app', allow: ['*'] },
-            {
-              from: 'pages',
-              allow: ['shared', 'entities', 'features', 'widgets'],
-            },
-            {
-              from: 'widgets',
-              allow: ['shared', 'entities', 'features'],
-            },
-            {
-              from: 'features',
-              allow: ['shared', 'entities'],
-            },
-            {
-              from: 'entities',
-              allow: ['shared'],
-            },
-            {
-              from: 'shared',
-              allow: [],
-            },
-          ],
-        },
-      ],
-      // 'boundaries/no-unknown': [1], // 알 수 없는 요소 참조 경고
-    },
-
-    settings: {
-      'boundaries/elements': [
-        { type: 'shared', pattern: 'src/shared/**' },
-        { type: 'entities', pattern: 'src/entities/**' },
-        { type: 'features', pattern: 'src/features/**' },
-        { type: 'widgets', pattern: 'src/widgets/**' },
-        { type: 'pages', pattern: 'src/pages/**' },
-        { type: 'app', pattern: 'src/app/**' },
-      ],
-      'boundaries/includes': ['src/**/*.*'],
-
-      // 핵심 설정 (alias import 인식)
-      'boundaries/include-relative': true,
-      'boundaries/include-absolute': true,
-      'import/resolver': {
-        typescript: {
-          alwaysTryTypes: true,
-        },
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: tseslint.parser, // TypeScript 코드를 파싱할 파서 지정
+      parserOptions: {
         project: [
           './tsconfig.json',
           './tsconfig.node.json',
           './tsconfig.app.json',
-        ],
+        ], // Explicitly list all tsconfig files
+        tsconfigRootDir: import.meta.dirname, // `tsconfig.json`을 찾을 기준 디렉토리 (현재 설정 파일 기준)
+        sourceType: 'module',
+        ecmaVersion: 'latest',
+        ecmaFeatures: { jsx: true },
       },
+    },
+    plugins: {
+      'import-x': eslintPluginImportX,
+    },
+    rules: {
+      // import 순서 규칙 설정
+      'import-x/order': [
+        'error', // 'warn'로 변경?
+        {
+          groups: [
+            ['builtin', 'external'],
+            'internal',
+            ['parent', 'sibling', 'index'],
+            'object',
+            'type',
+          ],
+          pathGroups: [
+            {
+              // React external 그룹으로
+              pattern: 'react',
+              group: 'external',
+              position: 'before',
+            },
+            {
+              // alias경로를 internal 그룹으로
+              pattern: '@/**',
+              group: 'internal',
+              position: 'after',
+            },
+          ],
+          pathGroupsExcludedImportTypes: ['react'], // 항상 최상위에 위치하게 됨
+          named: true,
+          alphabetize: {
+            // 알파벳 순서로 정렬
+            order: 'asc', // 오름차순 정렬
+            caseInsensitive: true, // 대소문자 구분 없이 정렬
+          },
+          'newlines-between': 'always',
+          warnOnUnassignedImports: false,
+          sortTypesGroup: true,
+          'newlines-between-types': 'always',
+        },
+      ],
+      'sort-imports': 'off', // es기본 import 정렬 규칙 비활성화 (import/order로 대체)
     },
   },
 
@@ -268,6 +269,5 @@ export default tseslint.config(
   // * Prettier 통합 (항상 마지막에 위치해야 Prettier 규칙이 다른 ESLint 규칙을 덮어씁니다.)
   // =====================================================================
 
-  // eslintPluginPrettierRecommended,
   eslintPluginConfigPrettier
 );
