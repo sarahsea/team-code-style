@@ -4,7 +4,16 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "always"
   },
-  "typescript.format.enable": true,
-  // "eslint.validate": ["javascript", "typescript", "typescriptreact"],
-  "files.eol": "\n"
+  "eslint.validate": ["javascript","javascriptreact", "typescript", "typescriptreact", "jsx", "vue",],
+  "files.eol": "\n",
+
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }

@@ -30,7 +30,7 @@ export default tseslint.config(
       '**/*.test.{js,ts,mjs,cts,mts,jsx,tsx}',
       '!.storybook', // Storybook 설정 폴더
       '.storybook',
-      'deploy/', // 배포 관련 폴더
+      // 'deploy/', // 배포 관련 폴더
       '**/*.stories.ts',
       '**/*.stories.tsx',
       '.storybook/**/*.ts',
@@ -71,24 +71,24 @@ export default tseslint.config(
       'prefer-const': 'warn', // 재할당되지 않는 변수는 const 사용 권장
     },
   },
-  // =====================================================================
-  // CommonJS 파일 설정 (.cjs 파일에만 적용)
-  // =====================================================================
-  {
-    files: ['**/*.cjs'],
-    languageOptions: {
-      ecmaVersion: 'latest',
-      sourceType: 'commonjs', // CommonJS 모듈 시스템 명시 (`require`/`module.exports`)
-      globals: {
-        ...globals.node, // Node.js 환경 전역 변수 (주로 Node.js에서 사용되므로)
-      },
-    },
-    rules: {
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
-      eqeqeq: 'error',
-    },
-  },
+  // // =====================================================================
+  // // CommonJS 파일 설정 (.cjs 파일에만 적용)
+  // // =====================================================================
+  // {
+  //   files: ['**/*.cjs'],
+  //   languageOptions: {
+  //     ecmaVersion: 'latest',
+  //     sourceType: 'commonjs', // CommonJS 모듈 시스템 명시 (`require`/`module.exports`)
+  //     globals: {
+  //       ...globals.node, // Node.js 환경 전역 변수 (주로 Node.js에서 사용되므로)
+  //     },
+  //   },
+  //   rules: {
+  //     'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+  //     'no-console': ['warn', { allow: ['warn', 'error'] }],
+  //     eqeqeq: 'error',
+  //   },
+  // },
   // =====================================================================
   // TypeScript 설정 (.ts, .tsx 파일에만 적용)
   // =====================================================================
@@ -192,11 +192,13 @@ export default tseslint.config(
       },
     },
     rules: {
-      ...eslintPluginJsxA11y.configs['recommended'].rules,
+      ...eslintPluginJsxA11y.configs.recommended.rules,
       // 추가적인 접근성 규칙 설정
       'jsx-a11y/anchor-is-valid': 'warn', // 유효하지 않은 앵커 태그 경고
-      'jsx-a11y/no-static-element-interactions': 'warn', // 정적 요소에 이벤트 핸들러 사용 경고
-      'jsx-a11y/click-events-have-key-events': 'warn', // 클릭 이벤트가 키보드 이벤트와 함께 사용되지 않을 때 경고
+      'jsx-a11y/no-static-element-interactions': 'off', // 정적 요소에 이벤트 핸들러 사용 - MUI
+      'jsx-a11y/click-events-have-key-events': 'off', // 클릭 이벤트가 키 이벤트를 가져야 하는지 여부 - MUI
+      'jsx-a11y/alt-text': 'warn', // 이미지에 alt 속성이 없을 때 경고
+      'jsx-a11y/aria-props': 'warn', // 올바르지 않은 aria 속성 사용 시 경고
     },
   },
 
