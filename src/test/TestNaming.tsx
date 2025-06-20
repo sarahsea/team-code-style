@@ -48,6 +48,10 @@ export const UserCard = () => {
     userName: 'Sarah', // ✅
   };
 
+  const MY_NUMBER = 123;
+
+  const TEST = '123';
+
   return (
     <div>
       <p>ID: {userId}</p>

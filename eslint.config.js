@@ -1,5 +1,5 @@
 // @ts-check
-import js from '@eslint/js';
+import eslint from '@eslint/js';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -10,6 +10,7 @@ import eslintPluginJsxA11y from 'eslint-plugin-jsx-a11y';
 import { importX as eslintPluginImportX } from 'eslint-plugin-import-x';
 
 import eslintPluginConfigPrettier from 'eslint-config-prettier/flat';
+import { ignore } from 'eslint-plugin-import-x/utils';
 
 export default tseslint.config(
   // =====================================================================
@@ -30,26 +31,27 @@ export default tseslint.config(
       '**/*.test.{js,ts,mjs,cts,mts,jsx,tsx}',
       '!.storybook', // Storybook 설정 폴더
       '.storybook',
-      // 'deploy/', // 배포 관련 폴더
       '**/*.stories.ts',
       '**/*.stories.tsx',
       '.storybook/**/*.ts',
       '.storybook/**/*.tsx',
+      '**/legacy/**', // 레거시 코드 폴더
 
       // 예: '.next/', '.svelte-kit/', '.output/', 'public/', 'assets/'
     ],
   },
   // ESLint 자체의 권장 규칙 세트
-  js.configs.recommended,
+  eslint.configs.recommended,
   // TypeScript ESLint의 권장 규칙 세트
-  ...tseslint.configs.recommended,
+  tseslint.configs.recommended,
+  tseslint.configs.recommendedTypeChecked,
   // =====================================================================
   // 공통 JavaScript (ES Module) 설정
   //    .js, .jsx, .mjs, .ts, .tsx, .vue 파일에 기본적으로 적용됩니다.
   //    (CommonJS 파일은 별도의 섹션에서 처리됩니다.)
   // =====================================================================
   {
-    files: ['**/*.{js,jsx,mjs,ts,tsx,vue}'],
+    files: ['**/*.{js,jsx,mjs,vue}'],
     languageOptions: {
       ecmaVersion: 'latest', // 최신 ECMAScript 버전 문법 지원
       sourceType: 'module', // ES Modules 사용 (`import`/`export`)
@@ -59,27 +61,26 @@ export default tseslint.config(
     },
     rules: {
       // 기본적인 JavaScript 규칙 추가 또는 재정의
-      'no-unused-vars': 'off', // TS eslint 사용
-      'no-console': ['warn', { allow: ['warn', 'error'] }], // console.log 경고, console.warn/error 허용
+      'no-unused-vars': 'error', // TS eslint 사용
+      'no-console': ['error', { allow: ['warn', 'error'] }], // console.log 경고, console.warn/error 허용
       eqeqeq: 'error', // `===` 사용 강제 (느슨한 비교 `==` 금지)
       curly: 'error', // 모든 제어문에 중괄호 사용 강제
       // 'dot-notation': 'warn', // 가능한 경우 점 표기법 사용 권장 (`obj['prop']` 대신 `obj.prop`)
       'no-trailing-spaces': 'warn', // 코드 라인 끝의 불필요한 공백 제거
       'comma-dangle': ['warn', 'always-multiline'], // 멀티라인에서 trailing comma 강제
       'no-debugger': 'error', // debugger 사용 금지
-      'no-alert': 'warn', // alert, confirm, prompt 사용 경고
+      'no-alert': 'error', // alert, confirm, prompt 사용 경고
       'prefer-const': 'warn', // 재할당되지 않는 변수는 const 사용 권장
       'eslint-plugin/naming-convention': 'off',
+      'quote-props': ['error', 'always'], // prettier와 충돌하는 규칙으로 비활성화
     },
   },
   // =====================================================================
   // TypeScript 설정 (.ts, .tsx 파일에만 적용)
   // =====================================================================
+
   {
     files: ['**/*.ts', '**/*.tsx'],
-    // tseslint.config에서 제공하는 TypeScript 관련 기본 및 타입 체크 규칙을 확장합니다.
-    // 'recommendedTypeChecked'는 타입 정보를 사용하므로, 성능에 영향을 줄 수 있습니다.
-    // 프로젝트 규모나 빌드 속도에 따라 'recommended'만 사용하거나 특정 규칙만 활성화할 수 있습니다.
     languageOptions: {
       parser: tseslint.parser, // TypeScript 코드를 파싱할 파서 지정
       parserOptions: {
@@ -91,21 +92,60 @@ export default tseslint.config(
         tsconfigRootDir: import.meta.dirname, // `tsconfig.json`을 찾을 기준 디렉토리 (현재 설정 파일 기준)
       },
     },
-    plugins: {
-      '@typescript-eslint': tseslint.plugin,
-    },
     rules: {
+      // TS eslint로 대체되는 Eslint 기본 규칙 비활성화
+      'no-unused-vars': 'off',
+      'no-shadow': 'off',
+      'no-redeclare': 'off',
+      'no-unused-expressions': 'off',
+      'no-array-constructor': 'off',
+      'no-dupe-class-members': 'off',
+      'no-loss-of-precision': 'off',
+      'no-undef': 'off',
+      'no-magic-numbers': 'off',
+
+      'quote-props': ['error', 'always'], // prettier와 충돌하는 규칙으로 비활성화
+
       // TypeScript 관련 규칙 추가 또는 재정의
-      '@typescript-eslint/no-explicit-any': 'warn', // `any` 타입 사용 경고
       '@typescript-eslint/explicit-module-boundary-types': 'off', // 함수 반환 타입 명시 강제 끄기 (필요 시 'error'로 변경)
+      '@typescript-eslint/no-empty-function': 'off', // 구현 없이 비어 있는 함수를 금지 off (논의?)
+      '@typescript-eslint/explicit-function-return-type': 'off', // 함수 반환 타입 명시 강제 끄기 (필요 시 'error'로 변경)
+      '@typescript-eslint/no-use-before-define': 'off', // 변수를 선언 전에 사용하는 것을 금지 off
+      '@typescript-eslint/no-empty-interface': 'off', // 빈 interface 선언 금지 (모델 정의 부분에서 class와 interface를 합치기 위해 사용하는 용법도 잡고 있어서)
+
+      '@typescript-eslint/no-explicit-any': 'warn', // `any` 타입 사용 경고
       '@typescript-eslint/no-non-null-assertion': 'off', // Non-null assertion (`!`) 사용 허용 (프로젝트 스타일에 따라 'warn' 또는 'error'로 변경)
       '@typescript-eslint/prefer-nullish-coalescing': 'off', // Nullish coalescing (`??`) 연산자 사용 권장
       '@typescript-eslint/array-type': ['error', { default: 'array-simple' }], // 배열 타입을 `Type[]` 형식으로 강제
       '@typescript-eslint/no-unused-vars': [
-        'warn',
-        { argsIgnorePattern: '^_' },
-      ], // TypeScript 버전의 no-unused-vars (언더스코어 변수 무시)
-      'no-unused-vars': 'off', // ESLint 기본 no-unused-vars 비활성화 (TS 버전으로 대체)
+        // 사용되지 않는 변수 경고 (아래 조건에서는 허용)
+        'error',
+        {
+          varsIgnorePattern: '^_', // 변수 이름이 언더스코어로 시작하는 경우 무시
+          argsIgnorePattern: '^_', // 매개변수 이름이 언더스코어로 시작하는 경우 무시
+          ignoreRestSiblings: true, // 구조분해에서 잔여 속성 무시 가능
+        },
+      ],
+      '@typescript-eslint/no-unsafe-return': 'warn', // any 타입을 반환하는 함수 경고
+
+      // magic numbers 사용 금지
+      '@typescript-eslint/no-magic-numbers': [
+        'error',
+        {
+          ignore: [0, 1, -1], // 일반적으로 사용되는 숫자들 허용
+          ignoreEnums: true, // enum 값은 허용 // enum foo { SECOND = 1000 }
+          ignoreNumericLiteralTypes: true, // 숫자 리터럴 타입은 허용 // type SmallPrimes = 2 | 3 | 5 | 7 | 11;
+          ignoreReadonlyClassProperties: true, // 읽기 전용 클래스 속성은 허용
+          ignoreTypeIndexes: true, // 타입 인덱스는 허용 // type Foo = Bar[0];
+          ignoreArrayIndexes: true, // 배열 인덱스는 허용
+          ignoreDefaultValues: true, // 기본값은 허용 (예: 함수 매개변수의 기본값)
+          ignoreClassFieldInitialValues: true, // 클래스 필드 초기값은 허용
+          enforceConst: true, // 상수로 선언된 숫자만 허용
+          detectObjects: false, // 객체의 숫자 값은 감지하지 않음
+        },
+      ],
+
+      // --- 네이밍 컨벤션 규칙 ---
       '@typescript-eslint/naming-convention': [
         'error',
         // --- 1. React 컴포넌트 변수 (e.g. const MyComponent = () => <div />) ---
@@ -142,7 +182,7 @@ export default tseslint.config(
         {
           selector: 'variable',
           modifiers: ['const'],
-          types: ['string', 'number', 'array', 'function'],
+          types: ['string', 'number'],
           format: ['UPPER_CASE'],
           custom: {
             regex: '^[A-Z0-9_]+$',
@@ -192,8 +232,6 @@ export default tseslint.config(
   {
     files: ['**/*.{jsx,tsx}'],
     ...eslintPluginReact.configs.flat['jsx-runtime'],
-    ...eslintPluginReactHooks.configs.recommended,
-    ...eslintPluginReactRefresh.configs.vite,
     languageOptions: {
       parserOptions: {
         ecmaFeatures: {
@@ -218,8 +256,6 @@ export default tseslint.config(
       // React 관련 규칙 추가 또는 재정의
       'react/react-in-jsx-scope': 'off', // React 17+에서 더 이상 `import React`가 필요 없으므로 비활성화
       'react/prop-types': 'off', // TypeScript 사용 시 PropTypes는 일반적으로 불필요
-      'react-hooks/rules-of-hooks': 'error', // React Hooks 규칙 위반 시 오류
-      'react-hooks/exhaustive-deps': 'warn', // `useEffect` 등의 의존성 배열 누락/오류 시 경고
       'react/jsx-uses-react': 'off', // React 17+에서 `React` 변수 사용 여부 체크 비활성화
       'react/jsx-uses-vars': 'off', // React 17+에서 JSX 변수 사용 여부 체크 비활성화 (타입스크립트 파서가 처리)
       'react/self-closing-comp': [
@@ -238,6 +274,16 @@ export default tseslint.config(
           unnamedComponents: 'arrow-function',
         },
       ],
+
+      // react-hooks
+      'react-hooks/rules-of-hooks': 'error', // React Hooks 규칙 위반 시 오류
+      'react-hooks/exhaustive-deps': 'warn', // `useEffect` 등의 의존성 배열 누락/오류 시 경고
+
+      // react-refresh
+      'react-refresh/only-export-components': [
+        'error',
+        { allowConstantExport: true },
+      ], // 컴포넌트만 export하도록 강제 (상수 export 허용 for vite)
     },
   },
   // =====================================================================
@@ -332,7 +378,7 @@ export default tseslint.config(
   },
 
   // =====================================================================
-  // * Prettier 통합 (항상 마지막에 위치해야 Prettier 규칙이 다른 ESLint 규칙을 덮어씁니다.)
+  // * Prettier 통합 (가장 아래에 위치해야 다른 포맷팅 관련 규칙을 모두 무시하고 Prettier가 우선 적용되도록 함)
   // =====================================================================
 
   eslintPluginConfigPrettier

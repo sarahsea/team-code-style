@@ -19,3 +19,9 @@ import { useItem } from './hooks/useItem';
 import { formatPrice } from '../../utils/formatPrice';
 
 import type { User } from '@/entities/user';
+
+const calculateTotalPrice = (items: { price: number; quantity: number }[]) => {
+  if (items[0].price > 1234) {
+    console.warn('Price is too high');
+  }
+};
