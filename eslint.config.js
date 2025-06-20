@@ -254,8 +254,8 @@ export default tseslint.config(
     },
     rules: {
       // React 관련 규칙 추가 또는 재정의
-      'react/react-in-jsx-scope': 'off', // React 17+에서 더 이상 `import React`가 필요 없으므로 비활성화
       'react/prop-types': 'off', // TypeScript 사용 시 PropTypes는 일반적으로 불필요
+      'react/react-in-jsx-scope': 'off', // React 17+에서 더 이상 `import React`가 필요 없으므로 비활성화
       'react/jsx-uses-react': 'off', // React 17+에서 `React` 변수 사용 여부 체크 비활성화
       'react/jsx-uses-vars': 'off', // React 17+에서 JSX 변수 사용 여부 체크 비활성화 (타입스크립트 파서가 처리)
       'react/self-closing-comp': [
