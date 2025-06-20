@@ -59,7 +59,7 @@ export default tseslint.config(
     },
     rules: {
       // 기본적인 JavaScript 규칙 추가 또는 재정의
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }], // 사용되지 않는 변수 경고 (언더스코어 변수는 무시)
+      'no-unused-vars': 'off', // TS eslint 사용
       'no-console': ['warn', { allow: ['warn', 'error'] }], // console.log 경고, console.warn/error 허용
       eqeqeq: 'error', // `===` 사용 강제 (느슨한 비교 `==` 금지)
       curly: 'error', // 모든 제어문에 중괄호 사용 강제
@@ -69,26 +69,9 @@ export default tseslint.config(
       'no-debugger': 'error', // debugger 사용 금지
       'no-alert': 'warn', // alert, confirm, prompt 사용 경고
       'prefer-const': 'warn', // 재할당되지 않는 변수는 const 사용 권장
+      'eslint-plugin/naming-convention': 'off',
     },
   },
-  // // =====================================================================
-  // // CommonJS 파일 설정 (.cjs 파일에만 적용)
-  // // =====================================================================
-  // {
-  //   files: ['**/*.cjs'],
-  //   languageOptions: {
-  //     ecmaVersion: 'latest',
-  //     sourceType: 'commonjs', // CommonJS 모듈 시스템 명시 (`require`/`module.exports`)
-  //     globals: {
-  //       ...globals.node, // Node.js 환경 전역 변수 (주로 Node.js에서 사용되므로)
-  //     },
-  //   },
-  //   rules: {
-  //     'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-  //     'no-console': ['warn', { allow: ['warn', 'error'] }],
-  //     eqeqeq: 'error',
-  //   },
-  // },
   // =====================================================================
   // TypeScript 설정 (.ts, .tsx 파일에만 적용)
   // =====================================================================
@@ -108,6 +91,9 @@ export default tseslint.config(
         tsconfigRootDir: import.meta.dirname, // `tsconfig.json`을 찾을 기준 디렉토리 (현재 설정 파일 기준)
       },
     },
+    plugins: {
+      '@typescript-eslint': tseslint.plugin,
+    },
     rules: {
       // TypeScript 관련 규칙 추가 또는 재정의
       '@typescript-eslint/no-explicit-any': 'warn', // `any` 타입 사용 경고
@@ -120,6 +106,84 @@ export default tseslint.config(
         { argsIgnorePattern: '^_' },
       ], // TypeScript 버전의 no-unused-vars (언더스코어 변수 무시)
       'no-unused-vars': 'off', // ESLint 기본 no-unused-vars 비활성화 (TS 버전으로 대체)
+      '@typescript-eslint/naming-convention': [
+        'error',
+        // --- 1. React 컴포넌트 변수 (e.g. const MyComponent = () => <div />) ---
+        {
+          selector: 'variable',
+          format: ['PascalCase'],
+          leadingUnderscore: 'forbid',
+          trailingUnderscore: 'forbid',
+          filter: {
+            regex: '^[A-Z][0-9A-Za-z]*$', // 이름이 대문자로 시작하는 함수만 해당
+            match: true,
+          },
+          types: ['function'],
+        },
+
+        // --- 2. React 컴포넌트 함수 선언 (e.g. function MyComponent() {}) ---
+        {
+          selector: 'function',
+          format: ['PascalCase'],
+          leadingUnderscore: 'forbid',
+          trailingUnderscore: 'forbid',
+          filter: {
+            regex: '^[A-Z][A-Za-z0-9]*$', // 이름이 대문자로 시작하는 함수만 해당
+            match: true,
+          },
+        },
+        // --- 3. 함수 매개변수 및 생성자 파라미터 속성 ---
+        {
+          selector: ['parameter', 'parameterProperty'],
+          format: ['camelCase'],
+          leadingUnderscore: 'allow',
+        },
+        // --- 4. const로 선언된 불변 데이터 변수 ---
+        {
+          selector: 'variable',
+          modifiers: ['const'],
+          types: ['string', 'number', 'array', 'function'],
+          format: ['UPPER_CASE'],
+          custom: {
+            regex: '^[A-Z0-9_]+$',
+            match: true,
+          },
+        },
+        // --- 5. 따옴표가 필요한 속성 (e.g. API 응답 필드 등) ---
+        {
+          selector: 'property',
+          modifiers: ['requiresQuotes'],
+          format: null,
+        },
+        // --- 6. 일반 변수 (대문자 2개 이상 연속 사용 금지 e.g. myID ) ---
+        {
+          selector: ['variable'],
+          format: ['camelCase'],
+          leadingUnderscore: 'allow',
+          trailingUnderscore: 'allow',
+          custom: {
+            regex: '([A-Z]{2,})',
+            match: false,
+          },
+        },
+        // --- 7. 일반 함수 (소문자 시작) ---
+        {
+          selector: 'function',
+          format: ['camelCase'],
+          leadingUnderscore: 'forbid',
+          trailingUnderscore: 'forbid',
+        },
+        // --- 8. 타입 관련 요소 ---
+        {
+          selector: 'typeLike',
+          format: ['PascalCase'],
+        },
+        // --- 9. enum 멤버 ---
+        {
+          selector: 'enumMember',
+          format: ['UPPER_CASE'],
+        },
+      ],
     },
   },
   // =====================================================================
