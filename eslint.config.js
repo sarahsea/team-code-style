@@ -8,9 +8,9 @@ import eslintPluginReactHooks from 'eslint-plugin-react-hooks';
 import eslintPluginReactRefresh from 'eslint-plugin-react-refresh';
 import eslintPluginJsxA11y from 'eslint-plugin-jsx-a11y';
 import { importX as eslintPluginImportX } from 'eslint-plugin-import-x';
+import eslintPluginTanstackQuery from '@tanstack/eslint-plugin-query';
 
 import eslintPluginConfigPrettier from 'eslint-config-prettier/flat';
-import { ignore } from 'eslint-plugin-import-x/utils';
 
 export default tseslint.config(
   // =====================================================================
@@ -45,6 +45,8 @@ export default tseslint.config(
   // TypeScript ESLint의 권장 규칙 세트
   tseslint.configs.recommended,
   tseslint.configs.recommendedTypeChecked,
+  // --- TanStack Query 권장 규칙 ---
+  ...eslintPluginTanstackQuery.configs['flat/recommended'],
   // =====================================================================
   // 공통 JavaScript (ES Module) 설정
   //    .js, .jsx, .mjs, .ts, .tsx, .vue 파일에 기본적으로 적용됩니다.
@@ -92,6 +94,7 @@ export default tseslint.config(
         tsconfigRootDir: import.meta.dirname, // `tsconfig.json`을 찾을 기준 디렉토리 (현재 설정 파일 기준)
       },
     },
+
     rules: {
       // TS eslint로 대체되는 Eslint 기본 규칙 비활성화
       'no-unused-vars': 'off',
@@ -226,6 +229,7 @@ export default tseslint.config(
       ],
     },
   },
+
   // =====================================================================
   // React 설정 (.jsx, .tsx 파일에만 적용)
   // =====================================================================
