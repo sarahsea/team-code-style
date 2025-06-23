@@ -43,8 +43,8 @@ export default tseslint.config(
   // ESLint 자체의 권장 규칙 세트
   eslint.configs.recommended,
   // TypeScript ESLint의 권장 규칙 세트
-  tseslint.configs.recommended,
-  tseslint.configs.recommendedTypeChecked,
+  tseslint.configs.recommendedTypeChecked, // recommended를 포함한다
+
   // =====================================================================
   // 공통 JavaScript (ES Module) 설정
   //    .js, .jsx, .mjs, .ts, .tsx, .vue 파일에 기본적으로 적용됩니다.
@@ -112,7 +112,6 @@ export default tseslint.config(
       '@typescript-eslint/explicit-function-return-type': 'off', // 함수 반환 타입 명시 강제 끄기 (필요 시 'error'로 변경)
       '@typescript-eslint/no-use-before-define': 'off', // 변수를 선언 전에 사용하는 것을 금지 off
       '@typescript-eslint/no-empty-interface': 'off', // 빈 interface 선언 금지 (모델 정의 부분에서 class와 interface를 합치기 위해 사용하는 용법도 잡고 있어서)
-
       '@typescript-eslint/no-explicit-any': 'warn', // `any` 타입 사용 경고
       '@typescript-eslint/no-non-null-assertion': 'off', // Non-null assertion (`!`) 사용 허용 (프로젝트 스타일에 따라 'warn' 또는 'error'로 변경)
       '@typescript-eslint/prefer-nullish-coalescing': 'off', // Nullish coalescing (`??`) 연산자 사용 권장
@@ -127,6 +126,14 @@ export default tseslint.config(
         },
       ],
       '@typescript-eslint/no-unsafe-return': 'warn', // any 타입을 반환하는 함수 경고
+      '@typescript-eslint/no-unused-expressions': [
+        'error',
+        {
+          allowShortCircuite: false, // isReady && start() 금지 -> if문 대체
+          allowTernary: false, // isReady ? start() : null 금지 -> if문 대체
+          allowTaggedTemplates: true, // 태그드 템플릿 리터럴 허용 styled.idv`` styled-components에서는 허용 필수
+        },
+      ],
 
       // magic numbers 사용 금지
       '@typescript-eslint/no-magic-numbers': [
@@ -151,14 +158,10 @@ export default tseslint.config(
         // --- 1. React 컴포넌트 변수 (e.g. const MyComponent = () => <div />) ---
         {
           selector: 'variable',
+          types: ['function'],
           format: ['PascalCase'],
           leadingUnderscore: 'forbid',
           trailingUnderscore: 'forbid',
-          filter: {
-            regex: '^[A-Z][0-9A-Za-z]*$', // 이름이 대문자로 시작하는 함수만 해당
-            match: true,
-          },
-          types: ['function'],
         },
 
         // --- 2. React 컴포넌트 함수 선언 (e.g. function MyComponent() {}) ---
@@ -168,7 +171,7 @@ export default tseslint.config(
           leadingUnderscore: 'forbid',
           trailingUnderscore: 'forbid',
           filter: {
-            regex: '^[A-Z][A-Za-z0-9]*$', // 이름이 대문자로 시작하는 함수만 해당
+            regex: '^[A-Z]', // 이름이 대문자로 시작하는 함수만 해당
             match: true,
           },
         },
@@ -177,6 +180,7 @@ export default tseslint.config(
           selector: ['parameter', 'parameterProperty'],
           format: ['camelCase'],
           leadingUnderscore: 'allow',
+          trailingUnderscore: 'forbid',
         },
         // --- 4. const로 선언된 불변 데이터 변수 ---
         {
@@ -335,9 +339,24 @@ export default tseslint.config(
       'import-x': eslintPluginImportX,
     },
     rules: {
-      // import 순서 규칙 설정
+      // 기존 eslint-plugin-import의 권장 주요 규칙 적용
+      'import-x/default': 'error', // default export가 없는 경우 오류
+      'import-x/named': 'error', // named export가 없는 경우 오류
+      'import-x/namespace': 'error', // namespace import가 없는 경우 오류
+      'import-x/no-unresolved': 'error', // 모듈을 찾을 수 없는 경우 오류
+      'import-x/no-duplicates': 'warn', // 중복된 import 경고
+      'import-x/no-absolute-path': 'warn', // 절대 경로 import 경고
+
+      // 그 외 import 규칙 설정
+      'import-x/no-self-import': 'error', // 자기 자신을 import하는 경우 오류
+      'import-x/no-cycle': 'error', // 순환 참조 import 금지
+      'import-x/no-useless-path-segments': 'error', // 불필요한 경로 세그먼트 제거
+
+      // import 순서 규칙 설정 // 공통 사용 논의
+      'sort-imports': 'off', // es기본 import 정렬 규칙 비활성화 (import/order로 대체)
+
       'import-x/order': [
-        'error', // 'warn'로 변경?
+        'error', //
         {
           groups: [
             ['builtin', 'external'],
@@ -373,7 +392,6 @@ export default tseslint.config(
           'newlines-between-types': 'always',
         },
       ],
-      'sort-imports': 'off', // es기본 import 정렬 규칙 비활성화 (import/order로 대체)
     },
   },
 
