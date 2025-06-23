@@ -10,7 +10,6 @@ import eslintPluginJsxA11y from 'eslint-plugin-jsx-a11y';
 import { importX as eslintPluginImportX } from 'eslint-plugin-import-x';
 
 import eslintPluginConfigPrettier from 'eslint-config-prettier/flat';
-import { ignore } from 'eslint-plugin-import-x/utils';
 
 export default tseslint.config(
   // =====================================================================
@@ -51,7 +50,7 @@ export default tseslint.config(
   //    (CommonJS 파일은 별도의 섹션에서 처리됩니다.)
   // =====================================================================
   {
-    files: ['**/*.{js,jsx,mjs,vue}'],
+    files: ['**/*.{js,jsx,mjs}'],
     languageOptions: {
       ecmaVersion: 'latest', // 최신 ECMAScript 버전 문법 지원
       sourceType: 'module', // ES Modules 사용 (`import`/`export`)
@@ -61,18 +60,19 @@ export default tseslint.config(
     },
     rules: {
       // 기본적인 JavaScript 규칙 추가 또는 재정의
-      'no-unused-vars': 'error', // TS eslint 사용
       'no-console': ['error', { allow: ['warn', 'error'] }], // console.log 경고, console.warn/error 허용
+      'no-debugger': 'error', // debugger 사용 금지
       eqeqeq: 'error', // `===` 사용 강제 (느슨한 비교 `==` 금지)
       curly: 'error', // 모든 제어문에 중괄호 사용 강제
       // 'dot-notation': 'warn', // 가능한 경우 점 표기법 사용 권장 (`obj['prop']` 대신 `obj.prop`)
       'no-trailing-spaces': 'warn', // 코드 라인 끝의 불필요한 공백 제거
       'comma-dangle': ['warn', 'always-multiline'], // 멀티라인에서 trailing comma 강제
-      'no-debugger': 'error', // debugger 사용 금지
       'no-alert': 'error', // alert, confirm, prompt 사용 경고
-      'prefer-const': 'warn', // 재할당되지 않는 변수는 const 사용 권장
-      'eslint-plugin/naming-convention': 'off',
-      'quote-props': ['error', 'always'], // prettier와 충돌하는 규칙으로 비활성화
+      'prefer-const': 'error', // 재할당되지 않는 변수는 const 사용 권장
+
+      'no-unused-vars': 'error', // TS eslint 사용
+      'eslint-plugin/naming-convention': 'off', // js 파일에서 네이밍 컨벤션 규칙 비활성화 (TypeScript에서만 사용)
+      'quote-props': 'off', // prettier와 충돌우려 비활성화
     },
   },
   // =====================================================================
@@ -104,7 +104,7 @@ export default tseslint.config(
       'no-undef': 'off',
       'no-magic-numbers': 'off',
 
-      'quote-props': ['error', 'always'], // prettier와 충돌하는 규칙으로 비활성화
+      'quote-props': 'off', // prettier와 충돌우려 비활성화
 
       // TypeScript 관련 규칙 추가 또는 재정의
       '@typescript-eslint/explicit-module-boundary-types': 'off', // 함수 반환 타입 명시 강제 끄기 (필요 시 'error'로 변경)
