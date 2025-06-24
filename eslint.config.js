@@ -59,20 +59,29 @@ export default tseslint.config(
       },
     },
     rules: {
-      // 기본적인 JavaScript 규칙 추가 또는 재정의
+      // js 팀 규칙 설정 - recommended에 포함되지 않은 규칙들 (논의)
+
+      // ❄️ frozen 안정화 된 규칙들 (--fix가능한, 추천할만한) // warn 쓸거면 안쓰는게 낫지 않을까? fix가능하게
+      'arrow-body-style': ['error', 'as-needed'], // 화살표 함수의 중괄호 사용 최소화, always로 할지?
+      curly: 'error', // 모든 제어문에 중괄호 사용 강제 if (foo) foo++; -> if (foo) { foo++; }
+      'dot-notation': 'error', // 가능한 경우 점 표기법 사용 권장 (obj['prop'] 대신 obj.prop)
+      'logical-assignment-operators': 'error', // 논리 연산자 할당 사용 강제 (e.g. `x &&= y` 대신 `x = x && y`)
+
+      // 그 외 제안
       'no-console': ['error', { allow: ['warn', 'error'] }], // console.log 경고, console.warn/error 허용
-      'no-debugger': 'error', // debugger 사용 금지
       eqeqeq: 'error', // `===` 사용 강제 (느슨한 비교 `==` 금지)
-      curly: 'error', // 모든 제어문에 중괄호 사용 강제
-      // 'dot-notation': 'warn', // 가능한 경우 점 표기법 사용 권장 (`obj['prop']` 대신 `obj.prop`)
-      'no-trailing-spaces': 'warn', // 코드 라인 끝의 불필요한 공백 제거
-      'comma-dangle': ['warn', 'always-multiline'], // 멀티라인에서 trailing comma 강제
       'no-alert': 'error', // alert, confirm, prompt 사용 경고
       'prefer-const': 'error', // 재할당되지 않는 변수는 const 사용 권장
+      yoda: 'warn', // Yoda 조건문 사용 경고 (e.g. `if (42 === x)` 대신 `if (x === 42)`)
 
-      'no-unused-vars': 'error', // TS eslint 사용
-      'eslint-plugin/naming-convention': 'off', // js 파일에서 네이밍 컨벤션 규칙 비활성화 (TypeScript에서만 사용)
-      'quote-props': 'off', // prettier와 충돌우려 비활성화
+      // eslint/js recommended에 있지만 명시적
+      'no-debugger': 'error', // debugger 사용 금지
+      'no-unused-vars': 'error', // 사용하지 않는 변수 금지
+
+      // prettier와 충돌우려 비활성화 옵션 (eslintv9부터는 포매팅 관련 규칙 빠졌지만 명시적으로)
+      'no-trailing-spaces': 'off',
+      'comma-dangle': 'off',
+      'quote-props': 'off',
     },
   },
   // =====================================================================
@@ -93,29 +102,33 @@ export default tseslint.config(
       },
     },
     rules: {
-      // TS eslint로 대체되는 Eslint 기본 규칙 비활성화
-      'no-unused-vars': 'off',
-      'no-shadow': 'off',
-      'no-redeclare': 'off',
-      'no-unused-expressions': 'off',
-      'no-array-constructor': 'off',
-      'no-dupe-class-members': 'off',
-      'no-loss-of-precision': 'off',
-      'no-undef': 'off',
-      'no-magic-numbers': 'off',
-
       'quote-props': 'off', // prettier와 충돌우려 비활성화
 
-      // TypeScript 관련 규칙 추가 또는 재정의
-      '@typescript-eslint/explicit-module-boundary-types': 'off', // 함수 반환 타입 명시 강제 끄기 (필요 시 'error'로 변경)
-      '@typescript-eslint/no-empty-function': 'off', // 구현 없이 비어 있는 함수를 금지 off (논의?)
-      '@typescript-eslint/explicit-function-return-type': 'off', // 함수 반환 타입 명시 강제 끄기 (필요 시 'error'로 변경)
-      '@typescript-eslint/no-use-before-define': 'off', // 변수를 선언 전에 사용하는 것을 금지 off
-      '@typescript-eslint/no-empty-interface': 'off', // 빈 interface 선언 금지 (모델 정의 부분에서 class와 interface를 합치기 위해 사용하는 용법도 잡고 있어서)
-      '@typescript-eslint/no-explicit-any': 'warn', // `any` 타입 사용 경고
-      '@typescript-eslint/no-non-null-assertion': 'off', // Non-null assertion (`!`) 사용 허용 (프로젝트 스타일에 따라 'warn' 또는 'error'로 변경)
-      '@typescript-eslint/prefer-nullish-coalescing': 'off', // Nullish coalescing (`??`) 연산자 사용 권장
-      '@typescript-eslint/array-type': ['error', { default: 'array-simple' }], // 배열 타입을 `Type[]` 형식으로 강제
+      /* ---  recommended + typeChecked 규칙 중 재정의 --- */
+      '@typescript-eslint/ban-ts-comment': [
+        // ts-comment에 대한 금지, 단 주석과 함께 허용 등 예외 처리
+        'error',
+        {
+          'ts-ignore': 'allow-with-description', // ts-ignore(바로 다음줄 모든 ts오류 억제) 사용을 허용하되 설명이 필요함
+          'ts-expect-error': 'allow-with-description', // ts-expect-error(위와 유사) 사용을 허용하되 설명이 필요함
+          'ts-nocheck': true, // ts-nocheck(파일 전체 ts오류 억제) 사용을 금지
+          'ts-check': false, // ts-check(파일 전체 ts오류 검사-주로타입검사 비활성화된 파일대상) 사용 허용
+        },
+      ],
+      // '@typescript-eslint/no-unsafe-return': 'warn', // any 타입을 반환하는 함수 경고 // recommended "error"
+      // '@typescript-eslint/no-unsafe-assignment': 'warn', // any 타입을 할당하는 경우 경고 reccommended 'error'
+
+      /* --- eslint/js 커스텀 규칙 설정 --- */
+      eqeqeq: 'error', // `===` 사용 강제 (느슨한 비교 `==` 금지)
+      'no-console': ['error', { allow: ['warn', 'error'] }], // console.log 경고, console.warn/error 허용
+      'prefer-const': 'error', // 재할당되지 않는 변수는 const 사용 권장
+
+      /* --- ts-eslint 커스텀 규칙 설정 --- */
+      // ts-eslint 커스텀 - eslint/js off 필요한 경우
+      'dot-notation': 'off',
+      '@typescript-eslint/dot-notation': 'error', // 점 표기법 사용 권장 (TypeScript에서 처리)
+
+      'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': [
         // 사용되지 않는 변수 경고 (아래 조건에서는 허용)
         'error',
@@ -125,18 +138,10 @@ export default tseslint.config(
           ignoreRestSiblings: true, // 구조분해에서 잔여 속성 무시 가능
         },
       ],
-      '@typescript-eslint/no-unsafe-return': 'warn', // any 타입을 반환하는 함수 경고
-      '@typescript-eslint/no-unused-expressions': [
-        'error',
-        {
-          allowShortCircuite: false, // isReady && start() 금지 -> if문 대체
-          allowTernary: false, // isReady ? start() : null 금지 -> if문 대체
-          allowTaggedTemplates: true, // 태그드 템플릿 리터럴 허용 styled.idv`` styled-components에서는 허용 필수
-        },
-      ],
 
-      // magic numbers 사용 금지
+      'no-magic-numbers': 'off',
       '@typescript-eslint/no-magic-numbers': [
+        // magic numbers 사용 금지
         'error',
         {
           ignore: [0, 1, -1], // 일반적으로 사용되는 숫자들 허용
@@ -152,7 +157,34 @@ export default tseslint.config(
         },
       ],
 
-      // --- 네이밍 컨벤션 규칙 ---
+      'no-use-before-define': 'off',
+      '@typescript-eslint/no-use-before-define': 'off', // 변수를 선언 전에 사용하는 것을 금지 off
+
+      'no-unused-expressions': 'off',
+      '@typescript-eslint/no-unused-expressions': [
+        //eslint의 no-unused-expressions 확장
+        'warn',
+        {
+          allowShortCircuite: false, // isReady && start() 금지 -> if문 대체
+          allowTernary: false, // isReady ? start() : null 금지 -> if문 대체
+          allowTaggedTemplates: true, // 태그드 템플릿 리터럴 허용 styled.idv`` styled-components에서는 허용 필수
+        },
+      ],
+
+      // ts-eslint 커스텀 - eslint/js 연관 x
+      '@typescript-eslint/no-explicit-any': 'warn', // `any` 타입 사용 경고
+      '@typescript-eslint/explicit-module-boundary-types': 'off', // 함수 반환 타입 명시 강제 끄기 (필요 시 'error'로 변경)
+      '@typescript-eslint/explicit-function-return-type': 'off', // 함수 반환 타입 명시 강제 끄기 (필요 시 'error'로 변경)
+      '@typescript-eslint/no-empty-interface': 'off', // 빈 interface 선언 금지 (모델 정의 부분에서 class와 interface를 합치기 위해 사용하는 용법도 잡고 있어서)
+      '@typescript-eslint/no-non-null-assertion': 'off', // Non-null assertion (`!`) 사용 금지 off (warn?)
+
+      // stylistic 규칙 (논의)
+      '@typescript-eslint/array-type': ['error', { default: 'array-simple' }], // 배열 타입을 `Type[]` 형식으로 강제
+      'no-empty-function': 'off',
+      '@typescript-eslint/no-empty-function': 'off', // 구현 없이 비어 있는 함수를 금지 off
+      '@typescript-eslint/prefer-nullish-coalescing': 'off', // Nullish coalescing (`??`) 연산자 사용 권장
+
+      /* --- 네이밍 컨벤션 규칙 --- */
       '@typescript-eslint/naming-convention': [
         'error',
         // --- 1. React 컴포넌트 변수 (e.g. const MyComponent = () => <div />) ---
@@ -347,12 +379,12 @@ export default tseslint.config(
       'import-x/no-duplicates': 'warn', // 중복된 import 경고
       'import-x/no-absolute-path': 'warn', // 절대 경로 import 경고
 
-      // 그 외 import 규칙 설정
+      // 그 외 import-x 규칙 설정
       'import-x/no-self-import': 'error', // 자기 자신을 import하는 경우 오류
       'import-x/no-cycle': 'error', // 순환 참조 import 금지
       'import-x/no-useless-path-segments': 'error', // 불필요한 경로 세그먼트 제거
 
-      // import 순서 규칙 설정 // 공통 사용 논의
+      // import 순서 규칙 설정
       'sort-imports': 'off', // es기본 import 정렬 규칙 비활성화 (import/order로 대체)
 
       'import-x/order': [
@@ -399,5 +431,5 @@ export default tseslint.config(
   // * Prettier 통합 (가장 아래에 위치해야 다른 포맷팅 관련 규칙을 모두 무시하고 Prettier가 우선 적용되도록 함)
   // =====================================================================
 
-  eslintPluginConfigPrettier
+  eslintPluginConfigPrettier,
 );
