@@ -1,30 +1,46 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+// 사용 안하는 변수 린트 에러 빨간줄 표시 제거 - 확인 용이하게 하기 위해
 // import React from 'react';
+
+import { useCallback } from 'react';
 
 // ✅ PascalCase 컴포넌트
 export const UserCard = () => {
-  // ✅ camelCase 변수
+  //  ❌ 고정값 변수 -> UPPER_CASE
   const userId = 'abc123';
+  // ✅ UPPER_CASE 상수
+  const USER_ID = 'abc123';
 
-  // ❌ UPPER_CASE 아님 (const + array)
+  // 재할당 되지 않는 상수
+  const MyVariable = 1;
+  // ✅ UPPER_CASE 상수
+  const MY_VARIABLE = 0;
+
+  // ❌ 변수 camelCase 아님
   const valid_roles = ['admin', 'user'];
 
-  // ✅ UPPER_CASE const
-  const VALID_ROLES = ['admin', 'user'];
+  // ✅ camelCase const
+  const validRoles = ['admin', 'user'];
 
   // ✅ boolean + prefix
   const isActive = true;
 
-  // ❌ boolean인데 접두사 없음
-  const active = false;
+  // ❌ PascalCase 변수
+  let MyVar = 'wrong';
+  MyVar = 'correct';
 
-  // ❌ PascalCase 변수 (일반 변수에는 허용 안됨)
-  const MyVar = 'wrong';
+  // ✅ camelCase 변수
+  let myVar = 'correct';
+  myVar = 'stillCorrect';
 
-  // ❌ 연속된 대문자 (금지된 형태)
-  const myID = 'shouldFail';
+  // ❌  뒤에 붙는 Underscore 금지
+  const func_ = function () {
+    return '1234';
+  };
+  const var_ = useCallback(() => ({}), []);
 
   // ✅ camelCase + 정상 이름
-  const userName = 'sarah';
+  const userName = () => null;
 
   // ✅ camelCase 매개변수
   function greetUser(userName: string) {
@@ -42,10 +58,11 @@ export const UserCard = () => {
     isMember: boolean;
   };
 
-  // ❌ property에 snake_case (API 응답 등에서 종종 생김)
+  // ❌ property에 어떤 포맷이든 허용
   const apiResponse = {
-    user_id: '1234', // ❌
-    userName: 'Sarah', // ✅
+    user_id: '1234',
+    userName: 'Sarah',
+    IS_ACTIVE: true,
   };
 
   const MY_NUMBER = 123;

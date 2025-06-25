@@ -8,6 +8,7 @@ import eslintPluginReactHooks from 'eslint-plugin-react-hooks';
 import eslintPluginReactRefresh from 'eslint-plugin-react-refresh';
 import eslintPluginJsxA11y from 'eslint-plugin-jsx-a11y';
 import { importX as eslintPluginImportX } from 'eslint-plugin-import-x';
+import eslintPluginJsdoc from 'eslint-plugin-jsdoc';
 
 import eslintPluginConfigPrettier from 'eslint-config-prettier/flat';
 
@@ -56,6 +57,8 @@ export default tseslint.config(
       sourceType: 'module', // ES Modules 사용 (`import`/`export`)
       globals: {
         ...globals.browser, // 웹 브라우저 환경 전역 변수 (window, document, console 등)
+        // globals.node, // Node.js 전역 변수 (process, Buffer 등) 필요시 추가
+        // globals.jest, // Jest 테스트 환경 전역 변수 (test, expect 등) 필요시 추가
       },
     },
     rules: {
@@ -170,7 +173,7 @@ export default tseslint.config(
         //eslint의 no-unused-expressions 확장
         'warn',
         {
-          allowShortCircuite: false, // isReady && start() 금지 -> if문 대체
+          allowShortCircuit: false, // isReady && start() 금지 -> if문 대체
           allowTernary: false, // isReady ? start() : null 금지 -> if문 대체
           allowTaggedTemplates: true, // 태그드 템플릿 리터럴 허용 styled.idv`` styled-components에서는 허용 필수
         },
@@ -186,40 +189,14 @@ export default tseslint.config(
       // stylistic 규칙 (논의)
       '@typescript-eslint/array-type': ['error', { default: 'array-simple' }], // 배열 타입을 `Type[]` 형식으로 강제
       'no-empty-function': 'off',
-      '@typescript-eslint/no-empty-function': 'off', // 구현 없이 비어 있는 함수를 금지 off
-      '@typescript-eslint/prefer-nullish-coalescing': 'off', // Nullish coalescing (`??`) 연산자 사용 권장
+      '@typescript-eslint/no-empty-function': 'error', // 구현 없이 비어 있는 함수를 금지 off, allow 옵션으로 예외처리 가능
+      '@typescript-eslint/prefer-nullish-coalescing': 'off', // Nullish coalescing (`??`) 연산자 사용 권장 off
 
       /* --- 네이밍 컨벤션 규칙 --- */
       '@typescript-eslint/naming-convention': [
         'error',
-        // --- 1. React 컴포넌트 변수 (e.g. const MyComponent = () => <div />) ---
-        {
-          selector: 'variable',
-          types: ['function'],
-          format: ['PascalCase'],
-          leadingUnderscore: 'forbid',
-          trailingUnderscore: 'forbid',
-        },
-
-        // --- 2. React 컴포넌트 함수 선언 (e.g. function MyComponent() {}) ---
-        {
-          selector: 'function',
-          format: ['PascalCase'],
-          leadingUnderscore: 'forbid',
-          trailingUnderscore: 'forbid',
-          filter: {
-            regex: '^[A-Z]', // 이름이 대문자로 시작하는 함수만 해당
-            match: true,
-          },
-        },
-        // --- 3. 함수 매개변수 및 생성자 파라미터 속성 ---
-        {
-          selector: ['parameter', 'parameterProperty'],
-          format: ['camelCase'],
-          leadingUnderscore: 'allow',
-          trailingUnderscore: 'forbid',
-        },
-        // --- 4. const로 선언된 불변 데이터 변수 ---
+        // 더 상세한 규칙을 위에 두어야 함
+        // --- 변수: const로 선언된 불변 데이터 변수 ---
         {
           selector: 'variable',
           modifiers: ['const'],
@@ -230,36 +207,46 @@ export default tseslint.config(
             match: true,
           },
         },
-        // --- 5. 따옴표가 필요한 속성 (e.g. API 응답 필드 등) ---
+        // --- 변수: 함수 타입 변수 (컴포넌트와 일반변수를 린트에서 구분 못함, pascal,camel 허용) ---
         {
-          selector: 'property',
-          modifiers: ['requiresQuotes'],
-          format: null,
+          selector: 'variable',
+          types: ['function'],
+          format: ['camelCase', 'PascalCase'],
+          trailingUnderscore: 'forbid',
         },
-        // --- 6. 일반 변수 (대문자 2개 이상 연속 사용 금지 e.g. myID ) ---
+        // --- 변수: 일반 변수 (함수 타입 변수 외) ---
         {
           selector: ['variable'],
           format: ['camelCase'],
-          leadingUnderscore: 'allow',
-          trailingUnderscore: 'allow',
-          custom: {
-            regex: '([A-Z]{2,})',
-            match: false,
-          },
+          leadingUnderscore: 'allow', // 언더스코어로 시작하는 변수 허용 (예: _tempValue)
+          trailingUnderscore: 'forbid',
         },
-        // --- 7. 일반 함수 (소문자 시작) ---
+        // --- 함수: 일반 함수 선언식  --- // 리액트 컴포넌트 함수는 표현식 권장하므로 린트 네이밍에서 처리x, 함수는 카멜만 허용
         {
           selector: 'function',
           format: ['camelCase'],
-          leadingUnderscore: 'forbid',
+          leadingUnderscore: 'allow',
           trailingUnderscore: 'forbid',
         },
-        // --- 8. 타입 관련 요소 ---
+
+        // --- 함수 매개변수 및 생성자 파라미터 속성 ---
+        {
+          selector: ['parameter', 'parameterProperty'],
+          format: ['camelCase'],
+          trailingUnderscore: 'forbid',
+        },
+        // --- 프로퍼티 (e.g. API 응답 필드 등) ---
+        {
+          selector: 'property',
+          format: null,
+        },
+
+        // --- 타입 관련 요소 ---
         {
           selector: 'typeLike',
           format: ['PascalCase'],
         },
-        // --- 9. enum 멤버 ---
+        // --- enum 멤버 ---
         {
           selector: 'enumMember',
           format: ['UPPER_CASE'],
@@ -308,7 +295,7 @@ export default tseslint.config(
         },
       ],
       'react/function-component-definition': [
-        'warn',
+        'warn', // 'error' ?
         {
           // 함수형 컴포넌트 정의 스타일
           namedComponents: 'arrow-function',
@@ -431,7 +418,38 @@ export default tseslint.config(
       ],
     },
   },
-
+  // =====================================================================
+  // JSDoc 관련 설정 (.ts, .tsx 파일에 적용)
+  // =====================================================================
+  {
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: tseslint.parser, // TypeScript 코드를 파싱할 파서 지정
+      parserOptions: {
+        project: [
+          './tsconfig.json',
+          './tsconfig.node.json',
+          './tsconfig.app.json',
+        ], // Explicitly list all tsconfig files
+        tsconfigRootDir: import.meta.dirname, // `tsconfig.json`을 찾을 기준 디렉토리 (현재 설정 파일 기준)
+        sourceType: 'module',
+        ecmaVersion: 'latest',
+        ecmaFeatures: { jsx: true },
+      },
+    },
+    plugins: {
+      jsdoc: eslintPluginJsdoc,
+    },
+    rules: {
+      ...eslintPluginJsdoc.configs['flat/recommended-typescript'].rules,
+      'jsdoc/require-jsdoc': 'off', // 주석 자체를 강제하지 않음 (주석이 있다면 기본 권장 사항 따름)
+    },
+    settings: {
+      jsdoc: {
+        mode: 'typescript', // TypeScript 모드로 설정
+      },
+    },
+  },
   // =====================================================================
   // * Prettier 통합 (가장 아래에 위치해야 다른 포맷팅 관련 규칙을 모두 무시하고 Prettier가 우선 적용되도록 함)
   // =====================================================================
