@@ -334,5 +334,5 @@ export default tseslint.config(
   // =====================================================================
 
   // eslintPluginPrettierRecommended,
-  eslintPluginConfigPrettier
+  eslintPluginConfigPrettier,
 );

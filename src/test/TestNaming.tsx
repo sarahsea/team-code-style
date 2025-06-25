@@ -6,17 +6,15 @@ import { useCallback } from 'react';
 
 // ✅ PascalCase 컴포넌트
 export const UserCard = () => {
-  //  ❌ 고정값 변수 -> UPPER_CASE
-  const userId = 'abc123';
-  // ✅ UPPER_CASE 상수
-  const USER_ID = 'abc123';
+  // 재할당 되지 않는 const 변수
+  const myVariable = 1;
+  const MY_VARIABLE = 2;
+  const MyVariable = 3;
 
-  // 재할당 되지 않는 상수
-  const MyVariable = 1;
-  // ✅ UPPER_CASE 상수
-  const MY_VARIABLE = 0;
+  // ❌ UPPER_CASE 상수
+  const MY_dVARIABLE = 0;
 
-  // ❌ 변수 camelCase 아님
+  // ❌ 잘못된 UPPER_CASE 상수
   const valid_roles = ['admin', 'user'];
 
   // ✅ camelCase const

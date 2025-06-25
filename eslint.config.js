@@ -23,11 +23,8 @@ export default tseslint.config(
       'build/', // 빌드 출력 폴더
       'node_modules/', // npm 패키지 폴더
       'coverage/', // 테스트 커버리지 보고서
-      '*.config.js',
-      '*.config.mjs',
-      '*.config.cjs',
-      '*.config.ts',
-      // 여기에 추가적으로 린팅을 무시할 파일/폴더를 추가하세요.
+      '*.config.{js,ts,mjs,cjs,ts,mts,cts}', // 설정 파일들
+      'config/', // 설정 폴더
       '**/*.test.{js,ts,mjs,cts,mts,jsx,tsx}',
       '!.storybook', // Storybook 설정 폴더
       '.storybook',
@@ -36,7 +33,7 @@ export default tseslint.config(
       '.storybook/**/*.ts',
       '.storybook/**/*.tsx',
       '**/legacy/**', // 레거시 코드 폴더
-
+      // 여기에 추가적으로 린팅을 무시할 파일/폴더를 추가하세요.
       // 예: '.next/', '.svelte-kit/', '.output/', 'public/', 'assets/'
     ],
   },
@@ -47,7 +44,7 @@ export default tseslint.config(
 
   // =====================================================================
   // 공통 JavaScript (ES Module) 설정
-  //    .js, .jsx, .mjs, .ts, .tsx, .vue 파일에 기본적으로 적용됩니다.
+  //    .js, .jsx, .mjs 파일에 기본적으로 적용됩니다.
   //    (CommonJS 파일은 별도의 섹션에서 처리됩니다.)
   // =====================================================================
   {
@@ -165,8 +162,8 @@ export default tseslint.config(
         },
       ],
 
-      'no-use-before-define': 'off',
-      '@typescript-eslint/no-use-before-define': 'off', // 변수를 선언 전에 사용하는 것을 금지 off
+      // 'no-use-before-define': 'off',
+      // '@typescript-eslint/no-use-before-define': 'off', // 변수를 선언 전에 사용하는 것을 금지 off
 
       'no-unused-expressions': 'off',
       '@typescript-eslint/no-unused-expressions': [
@@ -201,24 +198,22 @@ export default tseslint.config(
           selector: 'variable',
           modifiers: ['const'],
           types: ['string', 'number'],
-          format: ['UPPER_CASE'],
-          custom: {
-            regex: '^[A-Z0-9_]+$',
-            match: true,
-          },
+          format: ['camelCase', 'PascalCase', 'UPPER_CASE'],
+          leadingUnderscore: 'allow', // 언더스코어로 시작하는 변수 허용
         },
         // --- 변수: 함수 타입 변수 (컴포넌트와 일반변수를 린트에서 구분 못함, pascal,camel 허용) ---
         {
           selector: 'variable',
           types: ['function'],
           format: ['camelCase', 'PascalCase'],
+          leadingUnderscore: 'allow',
           trailingUnderscore: 'forbid',
         },
         // --- 변수: 일반 변수 (함수 타입 변수 외) ---
         {
           selector: ['variable'],
           format: ['camelCase'],
-          leadingUnderscore: 'allow', // 언더스코어로 시작하는 변수 허용 (예: _tempValue)
+          leadingUnderscore: 'allow',
           trailingUnderscore: 'forbid',
         },
         // --- 함수: 일반 함수 선언식  --- // 리액트 컴포넌트 함수는 표현식 권장하므로 린트 네이밍에서 처리x, 함수는 카멜만 허용
@@ -233,6 +228,7 @@ export default tseslint.config(
         {
           selector: ['parameter', 'parameterProperty'],
           format: ['camelCase'],
+          leadingUnderscore: 'allow',
           trailingUnderscore: 'forbid',
         },
         // --- 프로퍼티 (e.g. API 응답 필드 등) ---
@@ -261,9 +257,21 @@ export default tseslint.config(
     files: ['**/*.{jsx,tsx}'],
     ...eslintPluginReact.configs.flat['jsx-runtime'],
     languageOptions: {
+      parser: tseslint.parser, // TypeScript 코드를 파싱할 파서 지정
       parserOptions: {
+        project: [
+          './tsconfig.json',
+          './tsconfig.node.json',
+          './tsconfig.app.json',
+        ], // Explicitly list all tsconfig files
+        tsconfigRootDir: import.meta.dirname, // `tsconfig.json`을 찾을 기준 디렉토리 (현재 설정 파일 기준)
         ecmaFeatures: {
           jsx: true, // JSX 문법 사용
+        },
+        ecmaVersion: 'latest', // 최신 ECMAScript 버전 문법 지원
+        sourceType: 'module', // ES Modules 사용 (`import`/`export`)
+        globals: {
+          ...globals.browser, // 웹 브라우저 환경 전역 변수 (window, document, console 등)
         },
       },
       globals: {
@@ -339,7 +347,38 @@ export default tseslint.config(
       'jsx-a11y/aria-props': 'warn', // 올바르지 않은 aria 속성 사용 시 경고
     },
   },
-
+  // =====================================================================
+  // JSDoc 관련 설정 (.ts, .tsx 파일에 적용)
+  // =====================================================================
+  {
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: tseslint.parser, // TypeScript 코드를 파싱할 파서 지정
+      parserOptions: {
+        project: [
+          './tsconfig.json',
+          './tsconfig.node.json',
+          './tsconfig.app.json',
+        ], // Explicitly list all tsconfig files
+        tsconfigRootDir: import.meta.dirname, // `tsconfig.json`을 찾을 기준 디렉토리 (현재 설정 파일 기준)
+        sourceType: 'module',
+        ecmaVersion: 'latest',
+        ecmaFeatures: { jsx: true },
+      },
+    },
+    plugins: {
+      jsdoc: eslintPluginJsdoc,
+    },
+    rules: {
+      ...eslintPluginJsdoc.configs['flat/recommended-typescript'].rules,
+      'jsdoc/require-jsdoc': 'off', // 주석 자체를 강제하지 않음 (주석이 있다면 기본 권장 사항 따름)
+    },
+    settings: {
+      jsdoc: {
+        mode: 'typescript', // TypeScript 모드로 설정
+      },
+    },
+  },
   // =====================================================================
   // Import 관련 설정  (.ts, .tsx 파일에만 적용)
   // =====================================================================
@@ -418,38 +457,7 @@ export default tseslint.config(
       ],
     },
   },
-  // =====================================================================
-  // JSDoc 관련 설정 (.ts, .tsx 파일에 적용)
-  // =====================================================================
-  {
-    files: ['**/*.{ts,tsx}'],
-    languageOptions: {
-      parser: tseslint.parser, // TypeScript 코드를 파싱할 파서 지정
-      parserOptions: {
-        project: [
-          './tsconfig.json',
-          './tsconfig.node.json',
-          './tsconfig.app.json',
-        ], // Explicitly list all tsconfig files
-        tsconfigRootDir: import.meta.dirname, // `tsconfig.json`을 찾을 기준 디렉토리 (현재 설정 파일 기준)
-        sourceType: 'module',
-        ecmaVersion: 'latest',
-        ecmaFeatures: { jsx: true },
-      },
-    },
-    plugins: {
-      jsdoc: eslintPluginJsdoc,
-    },
-    rules: {
-      ...eslintPluginJsdoc.configs['flat/recommended-typescript'].rules,
-      'jsdoc/require-jsdoc': 'off', // 주석 자체를 강제하지 않음 (주석이 있다면 기본 권장 사항 따름)
-    },
-    settings: {
-      jsdoc: {
-        mode: 'typescript', // TypeScript 모드로 설정
-      },
-    },
-  },
+
   // =====================================================================
   // * Prettier 통합 (가장 아래에 위치해야 다른 포맷팅 관련 규칙을 모두 무시하고 Prettier가 우선 적용되도록 함)
   // =====================================================================

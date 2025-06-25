@@ -1,19 +1,16 @@
 import React from 'react';
 
-import { myUtil } from '@/entities/utils';
-
 import type { Apple, User } from '@/entities/user';
 
-// import { createApi } from '@reduxjs/toolkit/query/react';
+import { createApi } from '@reduxjs/toolkit/query/react';
 
-// import type { User } from '@/entities/user';
-// import React from 'react';
-// import { Card } from '@/shared/ui';
+import { myUtil } from '@/entities/utils';
+import { Card } from '@/shared/ui';
 
-// import { c, b, d } from '../test';
-// import '../style/theme.css';
-// import styles from './style.module.css';
-// import { helper } from '../../utils';
+import { b, c, d } from '../test';
+import '../style/theme.css';
+import styles from './style.module.css';
+import { helper } from '../../utils';
 
 // import React from 'react';
 
@@ -34,3 +31,9 @@ import type { Apple, User } from '@/entities/user';
 // import { formatPrice } from '../../utils/formatPrice';
 
 // import type { Product, User } from '@/entities/types';
+
+const MyComponent = () => {
+  return <div />;
+};
+
+export default MyComponent;

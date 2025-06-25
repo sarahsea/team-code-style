@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+// 사용 안하는 변수 린트 에러 빨간줄 표시 제거 - 확인 용이하게 하기 위해
+
 // // ❌ '@typescript-eslint/ban-ts-comment'
 // /** @ts-ignore */
 // const badComment = 1;
@@ -145,25 +148,16 @@ type Maybe = { a?: { b: string } };
 const m: Maybe = {};
 console.log(m.a?.b!);
 
-// ✅ prefer-const (warn)
-const city = 'seoul'; // ❌ 재할당 안 하면 const 써야 함
+//  prefer-const (warn)
+// let city = 'seoul'; // ❌ 재할당 안 하면 const 써야 함
 
-// ✅ const version
-const country = 'KR';
-
-// ❌ naming-convention: PascalCase required for component
+// ❌ 함수 타입 변수 camelCase, PascalCase만 허용
 const my_component = () => null; // ❌
-
+const myComponent = () => null; // ✅ PascalCase 컴포넌트
 const MyComponent = () => null; // ✅
 
 function doWork(): void {} // ✅ camelCase function
 
-// ❌ variable naming: 대문자 2개 이상 연속 사용
-const userID = 'abc'; // ❌
-
-const userId = 'abc'; // ✅
-
-// ❌ const 상수는 UPPER_CASE 요구됨
-const pi = 3.14; // ❌
-
-const PI = 3.14; // ✅
+// ✅ const 변수는 UPPER_CASE, camelCase, PascalCase 만 허용
+const pi = 3.14;
+const PI = 3.14;
