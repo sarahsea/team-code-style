@@ -259,19 +259,8 @@ export default tseslint.config(
     languageOptions: {
       parser: tseslint.parser, // TypeScript 코드를 파싱할 파서 지정
       parserOptions: {
-        project: [
-          './tsconfig.json',
-          './tsconfig.node.json',
-          './tsconfig.app.json',
-        ], // Explicitly list all tsconfig files
-        tsconfigRootDir: import.meta.dirname, // `tsconfig.json`을 찾을 기준 디렉토리 (현재 설정 파일 기준)
         ecmaFeatures: {
           jsx: true, // JSX 문법 사용
-        },
-        ecmaVersion: 'latest', // 최신 ECMAScript 버전 문법 지원
-        sourceType: 'module', // ES Modules 사용 (`import`/`export`)
-        globals: {
-          ...globals.browser, // 웹 브라우저 환경 전역 변수 (window, document, console 등)
         },
       },
       globals: {
@@ -419,7 +408,7 @@ export default tseslint.config(
       'sort-imports': 'off', // es기본 import 정렬 규칙 비활성화 (import/order로 대체)
 
       'import-x/order': [
-        'error', //
+        'error', // --fix로 자동 정렬 가능
         {
           groups: [
             ['builtin', 'external'],
