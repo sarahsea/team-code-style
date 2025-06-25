@@ -68,11 +68,15 @@ export default tseslint.config(
       'logical-assignment-operators': 'error', // 논리 연산자 할당 사용 강제 (e.g. `x &&= y` 대신 `x = x && y`)
 
       // 그 외 제안
-      'no-console': ['error', { allow: ['warn', 'error'] }], // console.log 경고, console.warn/error 허용
+      'no-console': ['error', { allow: ['warn', 'error'] }], // console.log 금지, console.warn/error 허용
       eqeqeq: 'error', // `===` 사용 강제 (느슨한 비교 `==` 금지)
-      'no-alert': 'error', // alert, confirm, prompt 사용 경고
-      'prefer-const': 'error', // 재할당되지 않는 변수는 const 사용 권장
+      'no-alert': 'error', // alert, confirm, prompt 사용 금지
+      'prefer-const': 'error', // 재할당되지 않는 변수는 const 사용 강제
       yoda: 'warn', // Yoda 조건문 사용 경고 (e.g. `if (42 === x)` 대신 `if (x === 42)`)
+      'no-dupe-else-if': 'error', //  else if 체인에서 동일한 조건을 여러 번 사용하는 것을 금지 (e.g. if (a) {} else if (a) {} -> if (a) {} else {})
+      // complexity: ['warn', 10], // 함수 복잡도 경고 (10을 초과하면 경고)
+      // 'max-lines-per-function': ['warn', { max: 50 }], // 함수당 최대 줄 수 경고 (50줄 초과 시 경고)
+      // 'max-params': ['warn', 3], // 함수 매개변수 최대 개수 제한 (3개 초과 시 경고)
 
       // eslint/js recommended에 있지만 명시적
       'no-debugger': 'error', // debugger 사용 금지
@@ -119,6 +123,7 @@ export default tseslint.config(
       // '@typescript-eslint/no-unsafe-assignment': 'warn', // any 타입을 할당하는 경우 경고 reccommended 'error'
 
       /* --- eslint/js 커스텀 규칙 설정 --- */
+      // 위에서 js 결정 되면 동일 적용 (typescript-eslint에 해당 없는 규칙들)
       eqeqeq: 'error', // `===` 사용 강제 (느슨한 비교 `==` 금지)
       'no-console': ['error', { allow: ['warn', 'error'] }], // console.log 경고, console.warn/error 허용
       'prefer-const': 'error', // 재할당되지 않는 변수는 const 사용 권장
