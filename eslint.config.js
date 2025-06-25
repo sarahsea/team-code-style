@@ -251,6 +251,84 @@ export default tseslint.config(
     },
   },
   // =====================================================================
+  // Import 관련 설정  (.ts, .tsx 파일에만 적용)
+  // =====================================================================
+  {
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: tseslint.parser, // TypeScript 코드를 파싱할 파서 지정
+      parserOptions: {
+        project: [
+          './tsconfig.json',
+          './tsconfig.node.json',
+          './tsconfig.app.json',
+        ], // Explicitly list all tsconfig files
+        tsconfigRootDir: import.meta.dirname, // `tsconfig.json`을 찾을 기준 디렉토리 (현재 설정 파일 기준)
+        sourceType: 'module',
+        ecmaVersion: 'latest',
+        ecmaFeatures: { jsx: true },
+      },
+    },
+    plugins: {
+      'import-x': eslintPluginImportX,
+    },
+    rules: {
+      // 기존 eslint-plugin-import의 권장 주요 규칙 적용
+      'import-x/default': 'error', // default export가 없는 경우 오류
+      'import-x/named': 'error', // named export가 없는 경우 오류
+      'import-x/namespace': 'error', // namespace import가 없는 경우 오류
+      'import-x/no-unresolved': 'error', // 모듈을 찾을 수 없는 경우 오류
+      'import-x/no-duplicates': 'warn', // 중복된 import 경고
+      'import-x/no-absolute-path': 'warn', // 절대 경로 import 경고
+
+      // 그 외 import-x 규칙 설정
+      'import-x/no-self-import': 'error', // 자기 자신을 import하는 경우 오류
+      'import-x/no-cycle': 'error', // 순환 참조 import 금지
+      'import-x/no-useless-path-segments': 'error', // 불필요한 경로 세그먼트 제거
+
+      // import 순서 규칙 설정
+      'sort-imports': 'off', // es기본 import 정렬 규칙 비활성화 (import/order로 대체)
+
+      'import-x/order': [
+        'error', // --fix로 자동 정렬 가능
+        {
+          groups: [
+            ['builtin', 'external'],
+            'internal',
+            ['parent', 'sibling', 'index'],
+            'object',
+            'type',
+          ],
+          pathGroups: [
+            {
+              // React external 그룹으로
+              pattern: 'react',
+              group: 'external',
+              position: 'before',
+            },
+            {
+              // alias경로를 internal 그룹으로
+              pattern: '@/**',
+              group: 'internal',
+              position: 'after',
+            },
+          ],
+          pathGroupsExcludedImportTypes: ['react'], // 항상 최상위에 위치하게 됨
+          named: true,
+          alphabetize: {
+            // 알파벳 순서로 정렬
+            order: 'asc', // 오름차순 정렬
+            caseInsensitive: true, // 대소문자 구분 없이 정렬
+          },
+          'newlines-between': 'always',
+          warnOnUnassignedImports: false,
+          sortTypesGroup: true,
+          'newlines-between-types': 'always',
+        },
+      ],
+    },
+  },
+  // =====================================================================
   // React 설정 (.jsx, .tsx 파일에만 적용)
   // =====================================================================
   {
@@ -366,84 +444,6 @@ export default tseslint.config(
       jsdoc: {
         mode: 'typescript', // TypeScript 모드로 설정
       },
-    },
-  },
-  // =====================================================================
-  // Import 관련 설정  (.ts, .tsx 파일에만 적용)
-  // =====================================================================
-  {
-    files: ['**/*.{ts,tsx}'],
-    languageOptions: {
-      parser: tseslint.parser, // TypeScript 코드를 파싱할 파서 지정
-      parserOptions: {
-        project: [
-          './tsconfig.json',
-          './tsconfig.node.json',
-          './tsconfig.app.json',
-        ], // Explicitly list all tsconfig files
-        tsconfigRootDir: import.meta.dirname, // `tsconfig.json`을 찾을 기준 디렉토리 (현재 설정 파일 기준)
-        sourceType: 'module',
-        ecmaVersion: 'latest',
-        ecmaFeatures: { jsx: true },
-      },
-    },
-    plugins: {
-      'import-x': eslintPluginImportX,
-    },
-    rules: {
-      // 기존 eslint-plugin-import의 권장 주요 규칙 적용
-      'import-x/default': 'error', // default export가 없는 경우 오류
-      'import-x/named': 'error', // named export가 없는 경우 오류
-      'import-x/namespace': 'error', // namespace import가 없는 경우 오류
-      'import-x/no-unresolved': 'error', // 모듈을 찾을 수 없는 경우 오류
-      'import-x/no-duplicates': 'warn', // 중복된 import 경고
-      'import-x/no-absolute-path': 'warn', // 절대 경로 import 경고
-
-      // 그 외 import-x 규칙 설정
-      'import-x/no-self-import': 'error', // 자기 자신을 import하는 경우 오류
-      'import-x/no-cycle': 'error', // 순환 참조 import 금지
-      'import-x/no-useless-path-segments': 'error', // 불필요한 경로 세그먼트 제거
-
-      // import 순서 규칙 설정
-      'sort-imports': 'off', // es기본 import 정렬 규칙 비활성화 (import/order로 대체)
-
-      'import-x/order': [
-        'error', // --fix로 자동 정렬 가능
-        {
-          groups: [
-            ['builtin', 'external'],
-            'internal',
-            ['parent', 'sibling', 'index'],
-            'object',
-            'type',
-          ],
-          pathGroups: [
-            {
-              // React external 그룹으로
-              pattern: 'react',
-              group: 'external',
-              position: 'before',
-            },
-            {
-              // alias경로를 internal 그룹으로
-              pattern: '@/**',
-              group: 'internal',
-              position: 'after',
-            },
-          ],
-          pathGroupsExcludedImportTypes: ['react'], // 항상 최상위에 위치하게 됨
-          named: true,
-          alphabetize: {
-            // 알파벳 순서로 정렬
-            order: 'asc', // 오름차순 정렬
-            caseInsensitive: true, // 대소문자 구분 없이 정렬
-          },
-          'newlines-between': 'always',
-          warnOnUnassignedImports: false,
-          sortTypesGroup: true,
-          'newlines-between-types': 'always',
-        },
-      ],
     },
   },
 
